@@ -1,21 +1,25 @@
 """
+lazyarray is a Python package that provides a lazily-evaluated numerical array
+class, ``larray``, based on and compatible with NumPy arrays.
 
-
+Copyright Andrew P. Davison, 2012
 """
 
 import numpy
 import operator
-from copy import copy, deepcopy
-import functools
+from copy import deepcopy
 import collections
+from functools import wraps
 
 __version__ = "0.1.0dev"
+
 
 def check_shape(meth):
     """
     Decorator for larray magic methods, to ensure that the operand has
     the same shape as the array.
     """
+    @wraps(meth)
     def wrapped_meth(self, val):
         if isinstance(val, (larray, numpy.ndarray)):
             if val.shape != self.shape:
@@ -31,11 +35,13 @@ def lazy_operation(name):
         return new_map
     return check_shape(op)
 
+
 def lazy_inplace_operation(name):
     def op(self, val):
         self.operations.append((getattr(operator, name), val))
         return self
     return check_shape(op)
+
 
 def lazy_unary_operation(name):
     def op(self):
@@ -52,7 +58,7 @@ class larray(object):
       - if the array is created from a RandomDistribution or a function f(i,j),
         then elements are only evaluated when they are accessed. Any operations
         performed on the array are also queued up to be executed on access.
-        
+
     The main intention of the latter is to save memory for very large arrays by
     accessing them one row or column at a time: the entire array need never be
     in memory.
@@ -61,33 +67,33 @@ class larray(object):
     def __init__(self, value, shape):
         """
         Create a new lazy array.
-        
+
         `value` : may be an int, long, float, bool, numpy array,
                   RandomDistribution or a function f(i,j).
-                  
+
         f(i,j) should return a single number when i and j are integers, and a 1D
         array when either i or j is a numpy array. The case where both i and j
         are arrays need not be supported.
         """
-        if isinstance(value, collections.Sized): # False for numbers, generators, functions, iterators
+        if isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
             #assert numpy.isreal(value).all()
             if not isinstance(value, numpy.ndarray):
                 value = numpy.array(value)
-            assert value.shape == shape, "Array has shape %s, value has shape %s" % (shape, value.shape) # this should be true even when using MPI
+            assert value.shape == shape,  "Array has shape %s, value has shape %s" % (shape, value.shape)
         else:
-            assert numpy.isreal(value) # also True for callables, generators, iterators
+            assert numpy.isreal(value)  # also True for callables, generators, iterators
         self.base_value = value
         self.shape = shape
         self.operations = []
-        
+
     @property
     def nrows(self):
         return self.shape[0]
-    
+
     @property
     def ncols(self):
         return self.shape[1]
-    
+
     def __getitem__(self, addr):
         if isinstance(addr, (int, long, float)):
             addr = (addr,)
@@ -101,7 +107,7 @@ class larray(object):
             return val
         else:
             return val[addr]
-    
+
     def __setitem__(self, addr, new_value):
         self.check_bounds(addr)
         val = self.value
@@ -110,19 +116,19 @@ class larray(object):
         else:
             self.base_value = self.as_array()
             self.base_value[addr] = new_value
-    
+
     def check_bounds(self, addr):
         if isinstance(addr, (int, long, float)):
             addr = (addr,)
         for i, size in zip(addr, self.shape):
             if (i < -size) or (i >= size):
                 raise IndexError("index out of bounds")
-    
+
     def apply(self, f):
         """
         Add the function f(x) to the list of the operations to be performed,
         where x will be a scalar or a numpy array.
-        
+
         >>> m = larray(4, shape=(2,2))
         >>> m.apply(numpy.sqrt)
         >>> m.value
@@ -132,7 +138,7 @@ class larray(object):
                [ 2.,  2.]])
         """
         self.operations.append((f, None))
-    
+
     def _apply_operations(self, x):
         for f, arg in self.operations:
             if arg is None:
@@ -140,12 +146,12 @@ class larray(object):
             else:
                 x = f(x, arg)
         return x
-    
+
     def by_column(self, mask=None):
         """
         Iterate over the columns of the array. Columns will be yielded either
         as a 1D array or as a single value (for a flat array).
-        
+
         `mask`: either None or a boolean array indicating which columns should
                 be included.
         """
@@ -172,7 +178,7 @@ class larray(object):
         #elif isinstance(self.base_value, larray):
         #    for column in self.base_value.by_column(mask=mask):
         #        yield self._apply_operations(column)
-        elif callable(self.base_value): # a function of (i,j)
+        elif callable(self.base_value):  # a function of (i,j)
             row_indices = numpy.arange(self.nrows, dtype=int)
             for j in column_indices:
                 yield self._apply_operations(self.base_value(row_indices, j))
@@ -196,7 +202,7 @@ class larray(object):
         Return the lazy array as a real numpy array.
         """
         if isinstance(self.base_value, (int, long, float, bool)):
-            x = self.base_value*numpy.ones(self.shape)
+            x = self.base_value * numpy.ones(self.shape)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
 #        elif isinstance(self.base_value, random.RandomDistribution):
@@ -213,8 +219,8 @@ class larray(object):
     __isub__ = lazy_inplace_operation('sub')
     __imul__ = lazy_inplace_operation('mul')
     __idiv__ = lazy_inplace_operation('div')
-    __ipow__  = lazy_inplace_operation('pow')
-    
+    __ipow__ = lazy_inplace_operation('pow')
+
     __add__  = lazy_operation('add')
     __radd__ = __add__
     __sub__  = lazy_operation('sub')
@@ -223,12 +229,12 @@ class larray(object):
     __div__  = lazy_operation('div')
     __rdiv__ = __div__
     __pow__  = lazy_operation('pow')
-    
+
     __lt__   = lazy_operation('lt')
     __gt__   = lazy_operation('gt')
     __le__   = lazy_operation('le')
     __ge__   = lazy_operation('ge')
-    
+
     __neg__  = lazy_unary_operation('neg')
     __pos__  = lazy_unary_operation('pos')
     __abs__  = lazy_unary_operation('abs')

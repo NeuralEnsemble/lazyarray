@@ -1,3 +1,9 @@
+"""
+Unit tests for ``larray`` class
+
+Copyright Andrew P. Davison, 2012
+"""
+
 from lazyarray import larray
 import numpy
 from nose.tools import assert_raises, assert_equal
