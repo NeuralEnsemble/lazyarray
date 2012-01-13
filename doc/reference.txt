@@ -1,0 +1,7 @@
+=========
+Reference
+=========
+
+
+.. autoclass:: lazyarray.larray
+   :members:
