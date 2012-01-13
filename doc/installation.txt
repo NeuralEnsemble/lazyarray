@@ -1,0 +1,6 @@
+============
+Installation
+============
+
+
+.. _numpy: http://numpy.scipy.org/
