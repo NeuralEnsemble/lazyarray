@@ -255,3 +255,10 @@ epub_copyright = u'2012, Andrew P. Davison'
 
 # Allow duplicate toc entries.
 #epub_tocdup = True
+
+# -- Options for doctests ----
+
+doctest_global_setup = """
+from lazyarray import larray
+import numpy
+"""
