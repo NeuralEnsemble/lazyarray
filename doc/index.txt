@@ -1,3 +1,4 @@
+=========
 lazyarray
 =========
 
@@ -18,7 +19,7 @@ and memory in cases where:
       in which each MPI node operates on a subset of the elements of the array)
 
 Contents
---------
+========
 
 .. toctree::
    :maxdepth: 2
@@ -26,15 +27,16 @@ Contents
    installation
    tutorial
    reference
+   developers
 
 Licence
--------
+=======
 
 The code is released under the Modified BSD licence.
 
 
 Indices and tables
-------------------
+==================
 
 * :ref:`genindex`
 * :ref:`modindex`

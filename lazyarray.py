@@ -28,6 +28,15 @@ def check_shape(meth):
     return wrapped_meth
 
 
+def requires_shape(meth):
+    @wraps(meth)
+    def wrapped_meth(self, *args, **kwargs):
+        if self.shape is None:
+            raise ValueError("Shape of larray not specified")
+        return meth(self, *args, **kwargs)
+    return wrapped_meth
+
+
 def lazy_operation(name):
     def op(self, val):
         new_map = deepcopy(self)
@@ -64,7 +73,7 @@ class larray(object):
     in memory.
     """
 
-    def __init__(self, value, shape):
+    def __init__(self, value, shape=None):
         """
         Create a new lazy array.
 
@@ -79,21 +88,26 @@ class larray(object):
             #assert numpy.isreal(value).all()
             if not isinstance(value, numpy.ndarray):
                 value = numpy.array(value)
-            assert value.shape == shape,  "Array has shape %s, value has shape %s" % (shape, value.shape)
+            if shape:
+                assert value.shape == shape,  "Array has shape %s, value has shape %s" % (shape, value.shape)
+            self.shape = value.shape
         else:
             assert numpy.isreal(value)  # also True for callables, generators, iterators
+            self.shape = shape
         self.base_value = value
-        self.shape = shape
         self.operations = []
 
     @property
+    @requires_shape
     def nrows(self):
         return self.shape[0]
 
     @property
+    @requires_shape
     def ncols(self):
         return self.shape[1]
 
+    @requires_shape
     def __getitem__(self, addr):
         if isinstance(addr, (int, long, float)):
             addr = (addr,)
@@ -108,6 +122,7 @@ class larray(object):
         else:
             return val[addr]
 
+    @requires_shape
     def __setitem__(self, addr, new_value):
         self.check_bounds(addr)
         val = self.value
@@ -117,6 +132,7 @@ class larray(object):
             self.base_value = self.as_array()
             self.base_value[addr] = new_value
 
+    @requires_shape
     def check_bounds(self, addr):
         if isinstance(addr, (int, long, float)):
             addr = (addr,)
@@ -133,7 +149,7 @@ class larray(object):
         >>> m.apply(numpy.sqrt)
         >>> m.value
         2.0
-        >>> m.as_array()
+        >>> m.evaluate()
         array([[ 2.,  2.],
                [ 2.,  2.]])
         """
@@ -147,6 +163,7 @@ class larray(object):
                 x = f(x, arg)
         return x
 
+    @requires_shape
     def by_column(self, mask=None):
         """
         Iterate over the columns of the array. Columns will be yielded either
@@ -197,7 +214,8 @@ class larray(object):
             val = val.value
         return val
 
-    def as_array(self):
+    @requires_shape
+    def evaluate(self):
         """
         Return the lazy array as a real numpy array.
         """
@@ -211,6 +229,10 @@ class larray(object):
         elif callable(self.base_value):
             row_indices = numpy.arange(self.nrows, dtype=int)
             x = numpy.array([self.base_value(row_indices, j) for j in range(self.ncols)]).T
+        elif isinstance(self.base_value, collections.Iterator):
+            x = numpy.fromiter(self.base_value, dtype=float)
+            if x.shape != self.shape:
+                x = x.reshape(self.shape)
         else:
             raise Exception("invalid mapping")
         return self._apply_operations(x)
