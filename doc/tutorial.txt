@@ -114,7 +114,7 @@ within the array shape:
     >>> from_gen.evaluate()
     array([  3.,   6.,  11.,  18.,  27.])
 
-and if it doesn't, an Exception is raised:
+If it doesn't, an Exception is raised:
 
 .. doctest::
 
@@ -141,11 +141,73 @@ with the indices of each element of the array:
            [ 0.        ,  0.06282152,  0.12558104,  0.18821663]])
 
 
+It is also possible to evaluate only parts of an array. This is explained below.
+
+
 Performing operations on a lazy array
 =====================================
 
+Just as with a normal NumPy array, it is possible to perform elementwise
+arithmetic operations:
+
+.. doctest::
+
+    >>> a = from_list + 2
+    >>> b = 2*a
+    >>> print(type(b))
+    <class 'lazyarray.larray'>
+
+However, these operations are not carried out immediately, rather they are
+queued up to be carried out later, which can lead to large time and memory
+savings if the evaluation step turns out later not to be needed, or if only
+part of the array needs to be evaluated.
+
+.. doctest::
+
+    >>> b.evaluate()
+    array([ 4,  6,  6,  8, 10, 14, 20])
+    
+Some more examples:
+
+.. doctest::
+
+    >>> a = 1.0/(from_list + 1)
+    >>> a.evaluate()
+    array([ 1.        ,  0.5       ,  0.5       ,  0.33333333,  0.25      ,
+            0.16666667,  0.11111111])
+    >>> (from_list < 2).evaluate()
+    array([ True,  True,  True, False, False, False, False], dtype=bool)
+    >>> (from_list**2).evaluate()
+    array([ 0,  1,  1,  4,  9, 25, 64])
+    >>> x = from_list
+    >>> (x**2 - 2*x + 5).evaluate()
+    array([ 5,  4,  4,  5,  8, 20, 53])
+    
+Numpy ufuncs cannot be used directly with lazy arrays, as NumPy does not know
+what to do with :class:`larray` objects. The lazyarray module therefore provides
+lazy array-compatible versions of a subset of the NumPy ufuncs, e.g.:
+
+.. doctest::
+
+    >>> from lazyarray import sqrt
+    >>> sqrt(from_list).evaluate()
+    array([ 0.        ,  1.        ,  1.        ,  1.41421356,  1.73205081,
+            2.23606798,  2.82842712])
+
+For any other function that operates on a NumPy array, it can be applied to a
+lazy array using the :meth:`apply()` method:
+
+.. doctest::
+
+    >>> def g(x):
+    ...    return x**2 - 2*x + 5
+    >>> from_list.apply(g)
+    >>> from_list.evaluate()
+    array([ 5,  4,  4,  5,  8, 20, 53])
+
 Iterating over a lazy array
 ===========================
+
 
 Accessing and modifying lazy array data
 =======================================

@@ -4,7 +4,7 @@ class, ``larray``, based on and compatible with NumPy arrays.
 
 Copyright Andrew P. Davison, 2012
 """
-
+from __future__ import division
 import numpy
 import operator
 from copy import deepcopy
@@ -37,10 +37,21 @@ def requires_shape(meth):
     return wrapped_meth
 
 
-def lazy_operation(name):
+def reverse(func):
+    """Given a function f(a, b), returns f(b, a)"""
+    def reversed_func(a, b):
+        return func(b, a)
+    reversed_func.__doc__ = "Reversed argument form of %s" % func.__doc__
+    return reversed_func
+
+
+def lazy_operation(name, reversed=False):
     def op(self, val):
         new_map = deepcopy(self)
-        new_map.operations.append((getattr(operator, name), val))
+        f = getattr(operator, name)
+        if reversed:
+            f = reverse(f)
+        new_map.operations.append((f, val))
         return new_map
     return check_shape(op)
 
@@ -96,6 +107,16 @@ class larray(object):
             self.shape = shape
         self.base_value = value
         self.operations = []
+
+    def __deepcopy__(self, memo):
+        obj = larray.__new__(larray)
+        try:
+            obj.base_value = deepcopy(self.base_value)
+        except TypeError: # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
+            obj.base_value = self.base_value # so here we creating a reference rather than deepcopying - could cause problems
+        obj.shape = self.shape
+        obj.operations = deepcopy(self.operations)
+        return obj
 
     @property
     @requires_shape
@@ -159,6 +180,8 @@ class larray(object):
         for f, arg in self.operations:
             if arg is None:
                 x = f(x)
+            elif isinstance(arg, larray):
+                x = f(x, arg.evaluate()) # need to cleverer, for partial evaluation
             else:
                 x = f(x, arg)
         return x
@@ -219,6 +242,7 @@ class larray(object):
         """
         Return the lazy array as a real numpy array.
         """
+        # need to catch the situation where a generator-based larray is evaluated a second time
         if isinstance(self.base_value, (int, long, float, bool)):
             x = self.base_value * numpy.ones(self.shape)
         elif isinstance(self.base_value, numpy.ndarray):
@@ -246,10 +270,13 @@ class larray(object):
     __add__  = lazy_operation('add')
     __radd__ = __add__
     __sub__  = lazy_operation('sub')
+    __rsub__ = lazy_operation('sub', reversed=True)
     __mul__  = lazy_operation('mul')
     __rmul__ = __mul__
     __div__  = lazy_operation('div')
-    __rdiv__ = __div__
+    __rdiv__ = lazy_operation('div', reversed=True)
+    __truediv__ = lazy_operation('truediv')
+    __truediv__ = lazy_operation('truediv', reversed=True)
     __pow__  = lazy_operation('pow')
 
     __lt__   = lazy_operation('lt')
@@ -260,3 +287,23 @@ class larray(object):
     __neg__  = lazy_unary_operation('neg')
     __pos__  = lazy_unary_operation('pos')
     __abs__  = lazy_unary_operation('abs')
+
+
+def _build_ufunc(func):
+    """Return a ufunc that works with lazy arrays"""
+    def larray_compatible_ufunc(x):
+        if isinstance(x, larray):
+            y = deepcopy(x)
+            y.apply(func)
+            return y
+        else:
+            return func(x)
+    return larray_compatible_ufunc
+
+
+# build lazy-array comptible versions of NumPy ufuncs
+namespace = globals()
+for name in dir(numpy):
+    obj = getattr(numpy, name)
+    if isinstance(obj, numpy.ufunc):
+        namespace[name] = _build_ufunc(obj)
