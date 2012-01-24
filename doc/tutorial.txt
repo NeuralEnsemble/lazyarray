@@ -205,10 +205,32 @@ lazy array using the :meth:`apply()` method:
     >>> from_list.evaluate()
     array([ 5,  4,  4,  5,  8, 20, 53])
 
-Iterating over a lazy array
-===========================
+Partial evaluation
+==================
+
+When accessing a single element of an array, only that element is evaluated,
+where possible, not the whole array:
+
+.. doctest::
+
+    >>> x = larray(lambda i,j: 2*i + 3*j, shape=(4,5))
+    >>> x[3, 2]
+    12
+    >>> y = larray(lambda i: i*(2-i), shape=(6,))
+    >>> y[4]
+    -8
+
+The same is true for accessing individual rows or columns:
+
+.. doctest::
+
+    >>> x[1]
+    array([ 2,  5,  8, 11, 14])
+    >>> x[:, 4]
+    array([12, 14, 16, 18])
 
 
 Accessing and modifying lazy array data
 =======================================
+
 
