@@ -113,7 +113,7 @@ class larray(object):
         try:
             obj.base_value = deepcopy(self.base_value)
         except TypeError: # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
-            obj.base_value = self.base_value # so here we creating a reference rather than deepcopying - could cause problems
+            obj.base_value = self.base_value # so here we create a reference rather than deepcopying - could cause problems
         obj.shape = self.shape
         obj.operations = deepcopy(self.operations)
         return obj
@@ -128,20 +128,71 @@ class larray(object):
     def ncols(self):
         return self.shape[1]
 
+    def _homogeneous_array(self, addr):
+        def size(x, max):
+            if isinstance(x, (int, long)):
+                return 1
+            elif isinstance(x, slice):
+                return ((x.stop or max) - (x.start or 0))//(x.step or 1)
+            elif hasattr(x, '__len__'):
+                return len(x)
+            else:
+                raise Exception("something went wrong")
+        shape = (size(x, max) for (x, max) in zip(addr, self.shape))
+        if len(shape) == 1 and shape[0] == 1:
+            return 1            
+        else:
+            return numpy.ones(shape, type(self.base_value))
+
+    def _array_indices(self, addr):
+        def axis_indices(x, max):
+            if isinstance(x, (int, long)):
+                return x
+            elif isinstance(x, slice):
+                return numpy.arange((x.start or 0),
+                                    (x.stop or max),
+                                    (x.step or 1),
+                                    dtype=int)
+            elif hasattr(x, '__len__'):
+                return x
+            else:
+                raise Exception("something went wrong")
+        if isinstance(addr, (int, long)):
+            addr = (addr,)
+        if len(addr) < len(self.shape):
+            full_addr = [slice(None)]*len(self.shape)
+            for i, val in enumerate(addr):
+                full_addr[i] = val
+            addr = full_addr
+        indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)] 
+        if len(indices) == 1:
+            if hasattr(indices[0], '__len__'):
+                return indices[0]
+            else:
+                return indices
+        elif len(indices) == 2:
+            if hasattr(indices[0], '__len__'):
+                if hasattr(indices[1], '__len__'):
+                    return numpy.meshgrid(*indices)
+            return indices
+        else:
+            raise NotImplementedError("Only 1D and 2D arrays supported")
+
     @requires_shape
     def __getitem__(self, addr):
-        if isinstance(addr, (int, long, float)):
-            addr = (addr,)
-        if len(addr) != len(self.shape):
-            raise IndexError("invalid index")
-        if not isinstance(addr, (int, long, tuple)):
-            raise TypeError("array indices must be integers, not %s" % type(addr).__name__)
-        val = self.value
-        if isinstance(val, (int, long, float)):
-            self.check_bounds(addr)
-            return val
+        if isinstance(self.base_value, (int, long, float, bool)):
+            base_val = self._homogeneous_array(addr) * self.base_value
+        elif isinstance(self.base_value, numpy.ndarray):
+            base_val = self.base_value[addr]
+        elif callable(self.base_value):
+            indices = self._array_indices(addr)
+            #import pdb; pdb.set_trace()
+            base_val = self.base_value(*indices)
+        elif isinstance(self.base_value, collections.Iterator):
+            raise NotImplementedError
         else:
-            return val[addr]
+            raise Exception("something went wrong")
+        return self._apply_operations(base_val)
 
     @requires_shape
     def __setitem__(self, addr, new_value):
@@ -252,7 +303,7 @@ class larray(object):
 #            x = self.base_value.next(n).reshape(self.shape)
         elif callable(self.base_value):
             row_indices = numpy.arange(self.nrows, dtype=int)
-            x = numpy.array([self.base_value(row_indices, j) for j in range(self.ncols)]).T
+            x = numpy.array([self.base_value(row_indices, j) for j in range(self.ncols)]).T  # is this not equivalent to numpy.fromfunction?
         elif isinstance(self.base_value, collections.Iterator):
             x = numpy.fromiter(self.base_value, dtype=float)
             if x.shape != self.shape:
