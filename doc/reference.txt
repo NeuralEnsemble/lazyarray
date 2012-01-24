@@ -12,3 +12,6 @@ Reference
       
       If the array is homogeneous and ``simplify`` is ``True``, return a single
       numerical value.
+      
+      
+# need to document shape attribute

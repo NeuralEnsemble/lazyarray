@@ -51,39 +51,39 @@ def test_create_inconsistent():
 def test_create_with_string():
     assert_raises(AssertionError, larray, "123", shape=3)
     
-def test_columnwise_iteration_with_flat_array():
-    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
-    cols = [col for col in m.by_column()]
-    assert_equal(cols, [5, 5, 5])
-
-def test_columnwise_iteration_with_structured_array():
-    input = numpy.arange(12).reshape((4,3))
-    m = larray(input, shape=(4,3)) # 4 rows, 3 columns
-    cols = [col for col in m.by_column()]    
-    assert_array_equal(cols[0], input[:,0])
-    assert_array_equal(cols[2], input[:,2])
-    
-def test_columnwise_iteration_with_function():
-    input = lambda i,j: 2*i + j
-    m = larray(input, shape=(4,3))
-    cols = [col for col in m.by_column()]
-    assert_array_equal(cols[0], numpy.array([0, 2, 4, 6]))
-    assert_array_equal(cols[1], numpy.array([1, 3, 5, 7]))
-    assert_array_equal(cols[2], numpy.array([2, 4, 6, 8]))
-    
-def test_columnwise_iteration_with_flat_array_and_mask():
-    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
-    mask = numpy.array([True, False, True])
-    cols = [col for col in m.by_column(mask=mask)]
-    assert_equal(cols, [5, 5])
-    
-def test_columnwise_iteration_with_structured_array_and_mask():
-    input = numpy.arange(12).reshape((4,3))
-    m = larray(input, shape=(4,3)) # 4 rows, 3 columns
-    mask = numpy.array([False, True, True])
-    cols = [col for col in m.by_column(mask=mask)]    
-    assert_array_equal(cols[0], input[:,1])
-    assert_array_equal(cols[1], input[:,2])
+#def test_columnwise_iteration_with_flat_array():
+#    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
+#    cols = [col for col in m.by_column()]
+#    assert_equal(cols, [5, 5, 5])
+#
+#def test_columnwise_iteration_with_structured_array():
+#    input = numpy.arange(12).reshape((4,3))
+#    m = larray(input, shape=(4,3)) # 4 rows, 3 columns
+#    cols = [col for col in m.by_column()]    
+#    assert_array_equal(cols[0], input[:,0])
+#    assert_array_equal(cols[2], input[:,2])
+#    
+#def test_columnwise_iteration_with_function():
+#    input = lambda i,j: 2*i + j
+#    m = larray(input, shape=(4,3))
+#    cols = [col for col in m.by_column()]
+#    assert_array_equal(cols[0], numpy.array([0, 2, 4, 6]))
+#    assert_array_equal(cols[1], numpy.array([1, 3, 5, 7]))
+#    assert_array_equal(cols[2], numpy.array([2, 4, 6, 8]))
+#    
+#def test_columnwise_iteration_with_flat_array_and_mask():
+#    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
+#    mask = numpy.array([True, False, True])
+#    cols = [col for col in m.by_column(mask=mask)]
+#    assert_equal(cols, [5, 5])
+#    
+#def test_columnwise_iteration_with_structured_array_and_mask():
+#    input = numpy.arange(12).reshape((4,3))
+#    m = larray(input, shape=(4,3)) # 4 rows, 3 columns
+#    mask = numpy.array([False, True, True])
+#    cols = [col for col in m.by_column(mask=mask)]    
+#    assert_array_equal(cols[0], input[:,1])
+#    assert_array_equal(cols[1], input[:,2])
 
 def test_evaluate_with_flat_array():
     m = larray(5, shape=(4,3))

@@ -2,3 +2,12 @@
 Developers' guide
 =================
 
+TO BE COMPLETED
+
+Testing
+=======
+
+In the `test` sub-directory, run::
+
+    $ nosetests
+    
