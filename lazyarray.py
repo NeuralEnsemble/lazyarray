@@ -136,7 +136,10 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        return isinstance(self.base_value, (int, long, float, bool))
+        hom_base = isinstance(self.base_value, (int, long, float, bool))
+        hom_ops = all(isinstance(obj.base_value, (int, long, float, bool))
+                      for obj in self.operations if  isinstance(obj, larray))
+        return hom_base and hom_ops
 
     def _homogeneous_array(self, addr):
         def size(x, max):
@@ -190,6 +193,12 @@ class larray(object):
 
     @requires_shape
     def __getitem__(self, addr):
+        return self._partially_evaluate(addr, simplify=False)
+
+    def _partially_evaluate(self, addr, simplify=False):
+        """
+        Return part of the lazy array.
+        """
         if self.is_homogeneous:
             base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
@@ -201,7 +210,7 @@ class larray(object):
             raise NotImplementedError
         else:
             raise Exception("something went wrong")
-        return self._apply_operations(base_val)
+        return self._apply_operations(base_val, addr, simplify=simplify)
 
     @requires_shape
     def check_bounds(self, addr):
@@ -227,54 +236,18 @@ class larray(object):
         """
         self.operations.append((f, None))
 
-    def _apply_operations(self, x):
+    def _apply_operations(self, x, addr=None, simplify=False):
         for f, arg in self.operations:
             if arg is None:
                 x = f(x)
             elif isinstance(arg, larray):
-                x = f(x, arg.evaluate())  # need to be cleverer, for partial evaluation
+                if addr is None:
+                    x = f(x, arg.evaluate(simplify=simplify))  
+                else:
+                    x = f(x, arg._partially_evaluate(addr, simplify=simplify))
             else:
                 x = f(x, arg)
         return x
-
-    @requires_shape
-    def by_column(self, mask=None):
-        """
-        Iterate over the columns of the array. Columns will be yielded either
-        as a 1D array or as a single value (for a flat array).
-
-        `mask`: either None or a boolean array indicating which columns should
-                be included.
-        """
-        column_indices = numpy.arange(self.ncols)
-        if mask is not None:
-            assert len(mask) == self.ncols
-            column_indices = column_indices[mask]
-        if self.is_homogeneous:
-            for j in column_indices:
-                yield self._apply_operations(self.base_value)
-        elif isinstance(self.base_value, numpy.ndarray):
-            for j in column_indices:
-                yield self._apply_operations(self.base_value[:, j])
-#        elif isinstance(self.base_value, random.RandomDistribution):
-#            if mask is None:
-#                for j in column_indices:
-#                    yield self._apply_operations(self.base_value.next(self.nrows, mask_local=False))
-#            else:
-#                column_indices = numpy.arange(self.ncols)
-#                for j,local in zip(column_indices, mask):
-#                    col = self.base_value.next(self.nrows, mask_local=False)
-#                    if local:
-#                        yield self._apply_operations(col)
-        #elif isinstance(self.base_value, larray):
-        #    for column in self.base_value.by_column(mask=mask):
-        #        yield self._apply_operations(column)
-        elif callable(self.base_value):  # a function of (i,j)
-            row_indices = numpy.arange(self.nrows, dtype=int)
-            for j in column_indices:
-                yield self._apply_operations(self.base_value(row_indices, j))
-        else:
-            raise Exception("invalid mapping")
 
     @requires_shape
     def evaluate(self, simplify=False):
@@ -292,9 +265,6 @@ class larray(object):
                 x = self.base_value * numpy.ones(self.shape)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
-#        elif isinstance(self.base_value, random.RandomDistribution):
-#            n = self.nrows*self.ncols
-#            x = self.base_value.next(n).reshape(self.shape)
         elif callable(self.base_value):
             row_indices = numpy.arange(self.nrows, dtype=int)
             x = numpy.array([self.base_value(row_indices, j) for j in range(self.ncols)]).T  # is this not equivalent to numpy.fromfunction?
@@ -304,7 +274,7 @@ class larray(object):
                 x = x.reshape(self.shape)
         else:
             raise Exception("invalid mapping")
-        return self._apply_operations(x)
+        return self._apply_operations(x, simplify=simplify)
 
     __iadd__ = lazy_inplace_operation('add')
     __isub__ = lazy_inplace_operation('sub')
