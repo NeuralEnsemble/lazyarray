@@ -73,27 +73,30 @@ def lazy_unary_operation(name):
 
 class larray(object):
     """
-    Optimises storage of arrays in various ways:
-      - stores only a single value if all the values in the array are the same
-      - if the array is created from a RandomDistribution or a function f(i,j),
-        then elements are only evaluated when they are accessed. Any operations
+    Optimises storage of and operations on arrays in various ways:
+      - stores only a single value if all the values in the array are the same;
+      - if the array is created from a function `f(i)` or `f(i,j)`, then
+        elements are only evaluated when they are accessed. Any operations
         performed on the array are also queued up to be executed on access.
 
-    The main intention of the latter is to save memory for very large arrays by
-    accessing them one row or column at a time: the entire array need never be
-    in memory.
+    Two use cases for the latter are:
+      - to save memory for very large arrays by accessing them one row or
+        column at a time: the entire array need never be in memory.
+      - in parallelized code, different rows or columns may be evaluated
+        on different nodes or in different threads.
     """
 
     def __init__(self, value, shape=None):
         """
         Create a new lazy array.
 
-        `value` : may be an int, long, float, bool, numpy array,
-                  RandomDistribution or a function f(i,j).
+        `value` : may be an int, long, float, bool, NumPy array, iterator,
+                  generator or a function, `f(i)` or `f(i,j)`, depending on the
+                  dimensions of the array.
 
-        f(i,j) should return a single number when i and j are integers, and a 1D
-        array when either i or j is a numpy array. The case where both i and j
-        are arrays need not be supported.
+        `f(i,j)` should return a single number when `i` and `j` are integers,
+        and a 1D array when either `i` or `j` or both is a NumPy array (in the
+        latter case the two arrays musy have equal lengths).
         """
         if isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
             #assert numpy.isreal(value).all()
@@ -112,8 +115,8 @@ class larray(object):
         obj = larray.__new__(larray)
         try:
             obj.base_value = deepcopy(self.base_value)
-        except TypeError: # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
-            obj.base_value = self.base_value # so here we create a reference rather than deepcopying - could cause problems
+        except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
+            obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
         obj.shape = self.shape
         obj.operations = deepcopy(self.operations)
         return obj
@@ -121,26 +124,33 @@ class larray(object):
     @property
     @requires_shape
     def nrows(self):
+        """Size of the first dimension of the array."""
         return self.shape[0]
 
     @property
     @requires_shape
     def ncols(self):
+        """Size of the second dimension (if it exists) of the array."""
         return self.shape[1]
+
+    @property
+    def is_homogeneous(self):
+        """True if all the elements of the array are the same."""
+        return isinstance(self.base_value, (int, long, float, bool))
 
     def _homogeneous_array(self, addr):
         def size(x, max):
             if isinstance(x, (int, long)):
                 return 1
             elif isinstance(x, slice):
-                return ((x.stop or max) - (x.start or 0))//(x.step or 1)
-            elif hasattr(x, '__len__'):
+                return ((x.stop or max) - (x.start or 0)) // (x.step or 1)
+            elif isinstance(x, collections.Sized):
                 return len(x)
             else:
                 raise Exception("something went wrong")
         shape = (size(x, max) for (x, max) in zip(addr, self.shape))
         if len(shape) == 1 and shape[0] == 1:
-            return 1            
+            return 1
         else:
             return numpy.ones(shape, type(self.base_value))
 
@@ -153,26 +163,26 @@ class larray(object):
                                     (x.stop or max),
                                     (x.step or 1),
                                     dtype=int)
-            elif hasattr(x, '__len__'):
+            elif isinstance(x, collections.Sized):
                 return x
             else:
                 raise Exception("something went wrong")
         if isinstance(addr, (int, long)):
             addr = (addr,)
         if len(addr) < len(self.shape):
-            full_addr = [slice(None)]*len(self.shape)
+            full_addr = [slice(None)] * len(self.shape)
             for i, val in enumerate(addr):
                 full_addr[i] = val
             addr = full_addr
-        indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)] 
+        indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)]
         if len(indices) == 1:
-            if hasattr(indices[0], '__len__'):
+            if isinstance(indices[0], collections.Sized):
                 return indices[0]
             else:
                 return indices
         elif len(indices) == 2:
-            if hasattr(indices[0], '__len__'):
-                if hasattr(indices[1], '__len__'):
+            if isinstance(indices[0], collections.Sized):
+                if isinstance(indices[1], collections.Sized):
                     return numpy.meshgrid(*indices)
             return indices
         else:
@@ -180,13 +190,12 @@ class larray(object):
 
     @requires_shape
     def __getitem__(self, addr):
-        if isinstance(self.base_value, (int, long, float, bool)):
+        if self.is_homogeneous:
             base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
             base_val = self.base_value[addr]
         elif callable(self.base_value):
             indices = self._array_indices(addr)
-            #import pdb; pdb.set_trace()
             base_val = self.base_value(*indices)
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError
@@ -195,17 +204,10 @@ class larray(object):
         return self._apply_operations(base_val)
 
     @requires_shape
-    def __setitem__(self, addr, new_value):
-        self.check_bounds(addr)
-        val = self.value
-        if isinstance(val, (int, long, float)) and val == new_value:
-            pass
-        else:
-            self.base_value = self.as_array()
-            self.base_value[addr] = new_value
-
-    @requires_shape
     def check_bounds(self, addr):
+        """
+        Check whether the given address is within the array bounds.
+        """
         if isinstance(addr, (int, long, float)):
             addr = (addr,)
         for i, size in zip(addr, self.shape):
@@ -214,13 +216,11 @@ class larray(object):
 
     def apply(self, f):
         """
-        Add the function f(x) to the list of the operations to be performed,
-        where x will be a scalar or a numpy array.
+        Add the function `f(x)` to the list of the operations to be performed,
+        where `x` will be a scalar or a numpy array.
 
         >>> m = larray(4, shape=(2,2))
         >>> m.apply(numpy.sqrt)
-        >>> m.value
-        2.0
         >>> m.evaluate()
         array([[ 2.,  2.],
                [ 2.,  2.]])
@@ -232,7 +232,7 @@ class larray(object):
             if arg is None:
                 x = f(x)
             elif isinstance(arg, larray):
-                x = f(x, arg.evaluate()) # need to cleverer, for partial evaluation
+                x = f(x, arg.evaluate())  # need to be cleverer, for partial evaluation
             else:
                 x = f(x, arg)
         return x
@@ -250,7 +250,7 @@ class larray(object):
         if mask is not None:
             assert len(mask) == self.ncols
             column_indices = column_indices[mask]
-        if isinstance(self.base_value, (int, long, float, bool)):
+        if self.is_homogeneous:
             for j in column_indices:
                 yield self._apply_operations(self.base_value)
         elif isinstance(self.base_value, numpy.ndarray):
@@ -276,26 +276,20 @@ class larray(object):
         else:
             raise Exception("invalid mapping")
 
-    @property
-    def value(self):
-        """
-        Returns the base value with all operations applied to it. Works only
-        when the base value is a scalar or a real numpy array, not when the
-        base value is a RandomDistribution or mapping function.
-        """
-        val = self._apply_operations(self.base_value)
-        if isinstance(val, larray):
-            val = val.value
-        return val
-
     @requires_shape
-    def evaluate(self):
+    def evaluate(self, simplify=False):
         """
-        Return the lazy array as a real numpy array.
+        Return the lazy array as a real NumPy array.
+
+        If the array is homogeneous and ``simplify`` is ``True``, return a
+        single numerical value.
         """
         # need to catch the situation where a generator-based larray is evaluated a second time
-        if isinstance(self.base_value, (int, long, float, bool)):
-            x = self.base_value * numpy.ones(self.shape)
+        if self.is_homogeneous:
+            if simplify:
+                x = self.base_value
+            else:
+                x = self.base_value * numpy.ones(self.shape)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
 #        elif isinstance(self.base_value, random.RandomDistribution):

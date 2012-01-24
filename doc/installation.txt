@@ -2,5 +2,51 @@
 Installation
 ============
 
+Dependencies
+============
+  
+    * Python >= 2.6
+    * numpy_ >= 1.1 (or >= 1.5 for Python 3)
+    
 
-.. _numpy: http://numpy.scipy.org/
+Installing from the Python Package Index
+========================================
+
+If you have pip_ installed::
+
+    $ pip install lazyarray
+        
+This will automatically download and install the latest release (you may need
+to have administrator privileges on the machine you are installing on).
+    
+To download and install manually, download:
+
+    http://pypi.python.org/packages/source/L/lazyarray/lazyarray-0.1.0.tar.gz
+
+Then::
+
+    $ tar xzf lazyarray-0.1.0.tar.gz
+    $ cd lazyarray-0.1.0
+    $ python setup.py install
+    
+or::
+
+    $ python3 setup.py install
+    
+depending on which version of Python you are using.
+
+
+Installing from source
+======================
+
+To install the latest version of lazyarray from the Mercurial repository::
+
+    $ hg clone https://bitbucket.org/apdavison/lazyarray lazyarray_hg
+    $ cd lazyarray_hg
+    $ python setup.py install
+
+
+.. _`numpy`: http://numpy.scipy.org/
+.. _`quantities`: http://pypi.python.org/pypi/quantities
+.. _`pip`: http://pypi.python.org/pypi/pip
+.. _`setuptools`: http://pypi.python.org/pypi/setuptools
