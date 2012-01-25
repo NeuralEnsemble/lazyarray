@@ -236,5 +236,7 @@ The same is true for accessing individual rows or columns:
     >>> x[:, 4]
     array([12, 14, 16, 18])
     >>> x[:, (0, 4)]
-    array([[ 0,  2,  4,  6],
-           [12, 14, 16, 18]])
+    array([[ 0, 12],
+           [ 2, 14],
+           [ 4, 16],
+           [ 6, 18]])

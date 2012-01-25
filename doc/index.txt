@@ -36,10 +36,3 @@ Licence
 The code is released under the Modified BSD licence.
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

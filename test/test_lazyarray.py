@@ -38,12 +38,33 @@ def test_create_with_float():
 def test_create_with_list():
     A = larray([1,2,3], shape=(3,))
     assert A.shape == (3,)
-    assert_array_equal(A.evaluate(simplify=True), numpy.array([1,2,3]))
+    assert_array_equal(A.evaluate(), numpy.array([1,2,3]))
 
 def test_create_with_array():
     A = larray(numpy.array([1,2,3]), shape=(3,))
     assert A.shape == (3,)
-    assert_array_equal(A.evaluate(simplify=True), numpy.array([1,2,3]))
+    assert_array_equal(A.evaluate(), numpy.array([1,2,3]))
+
+def test_create_with_generator():
+    def plusone():
+        i = 0
+        while True:
+            yield i
+            i += 1
+    A = larray(plusone(), shape=(5, 11))
+    assert_array_equal(A.evaluate(),
+                       numpy.arange(55).reshape((5, 11)))
+
+def test_create_with_function1D():
+    A = larray(lambda i: 99-i, shape=(3,))
+    assert_array_equal(A.evaluate(),
+                       numpy.array([99, 98, 97]))
+
+def test_create_with_function2D():
+    A = larray(lambda i,j: 3*j-2*i, shape=(2, 3))
+    assert_array_equal(A.evaluate(),
+                       numpy.array([[0, 3, 6],
+                                    [-2, 1, 4]]))
 
 def test_create_inconsistent():
     assert_raises(AssertionError, larray, [1,2,3], shape=4)
@@ -84,6 +105,20 @@ def test_create_with_string():
 #    cols = [col for col in m.by_column(mask=mask)]    
 #    assert_array_equal(cols[0], input[:,1])
 #    assert_array_equal(cols[1], input[:,2])
+
+def test_size_related_properties():
+    m1 = larray(1, shape=(9,7))
+    m2 = larray(1, shape=(13,))
+    m3 = larray(1)
+    assert_equal(m1.nrows, 9)
+    assert_equal(m1.ncols, 7)
+    assert_equal(m1.size, 63)
+    assert_equal(m2.nrows, 13)
+    assert_equal(m2.ncols, 1)
+    assert_equal(m2.size, 13)
+    assert_raises(ValueError, lambda: m3.nrows)
+    assert_raises(ValueError, lambda: m3.ncols)
+    assert_raises(ValueError, lambda: m3.size)
 
 def test_evaluate_with_flat_array():
     m = larray(5, shape=(4,3))
@@ -134,6 +169,24 @@ def test_structured_array_lt_array():
     comparison = 5*numpy.ones((4,3))
     m1 = m0 < comparison
     assert_array_equal(m1.evaluate(simplify=True), input < comparison)
+
+def test_rsub_with_structured_array():
+    m = larray(numpy.arange(12).reshape((4, 3)))
+    assert_array_equal((11 - m).evaluate(),
+                       numpy.arange(11, -1, -1).reshape((4, 3)))
+
+def test_inplace_mul_with_structured_array():
+    m = larray((3*x for x in range(4)), shape=(4,))
+    m *= 7
+    assert_array_equal(m.evaluate(),
+                       numpy.arange(0, 84, 21))
+
+def test_abs_with_structured_array():
+    m = larray(lambda i,j: i-j, shape=(3,4))
+    assert_array_equal(abs(m).evaluate(),
+                       numpy.array([[0, 1, 2, 3],
+                                    [1, 0, 1, 2],
+                                    [2, 1, 0, 1]]))
 
 def test_multiple_operations_with_structured_array():
     input = numpy.arange(12).reshape((4,3))
@@ -188,15 +241,66 @@ def test_add_incommensurate_arrays():
     m1 = larray(7, shape=(5,3))
     assert_raises(ValueError, m0.__add__, m1)
     
-def test_getitem_from_constant_array():
+def test_getitem_from_2D_constant_array():
     m = larray(3, shape=(4,3))
     assert m[0,0] == m[3,2] == m[-1,2] == m[-4,2] == m[2,-3] == 3
-    assert_raises(IndexError, m.__getitem__, (4,0))
-    assert_raises(IndexError, m.__getitem__, (2,-4))
-    
-def test_getitem_from_constant_array():
+    assert_raises(IndexError, m.__getitem__, (4, 0))
+    assert_raises(IndexError, m.__getitem__, (2, -4))
+
+def test_getitem_from_1D_constant_array():
+    m = larray(3, shape=(43,))
+    assert m[0] == m[42] == 3
+
+def test_getitem__with_slice_from_constant_array():
+    m = larray(3, shape=(4, 3))
+    assert_array_equal(m[:3, 0],
+                       numpy.array([3, 3, 3]))
+
+def test_getitem__with_thinslice_from_constant_array():
+    m = larray(3, shape=(4, 3))
+    assert_equal(m[2:3, 0:1], 3)
+
+def test_getitem__with_mask_from_constant_array():
+    m = larray(3, shape=(4, 3))
+    assert_array_equal(m[1, (0, 2)],
+                       numpy.array([3, 3]))    
+
+def test_getslice_from_constant_array():
+    m = larray(3, shape=(4, 3))
+    assert_array_equal(m[:2],
+                       numpy.array([[3, 3, 3],
+                                    [3, 3, 3]]))
+
+def test_getitem_from_structured_array():
     m = larray(3*numpy.ones((4,3)), shape=(4,3))
     assert m[0,0] == m[3,2] == m[-1,2] == m[-4,2] == m[2,-3] == 3
     assert_raises(IndexError, m.__getitem__, (4,0))
     assert_raises(IndexError, m.__getitem__, (2,-4))
-    
+
+def test_getitem_from_2D_functional_array():
+    m = larray(lambda i,j: 2*i + j, shape=(6,5))
+    assert_equal(m[5, 4], 14)
+
+def test_getitem_from_1D_functional_array():
+    m = larray(lambda i: i**3, shape=(6,))
+    assert_equal(m[5], 125)
+
+def test_getitem_with_slice_from_2D_functional_array():
+    m = larray(lambda i,j: 2*i + j, shape=(6,5))
+    assert_array_equal(m[2:5, 3:],
+                       numpy.array([[7, 8],
+                                    [9, 10],
+                                    [11, 12]]))
+
+def test_getitem_with_mask_from_2D_functional_array():
+    m = larray(lambda i,j: 2*i + j, shape=(6,5))
+    assert_array_equal(m[[2, 3, 4], [3, 4]],
+                       numpy.array([[7, 8],
+                                    [9, 10],
+                                    [11, 12]]))
+
+def test_getslice_from_2D_functional_array():
+    m = larray(lambda i,j: 2*i + j, shape=(6,5))
+    assert_array_equal(m[1:3],
+                       numpy.array([[2, 3, 4, 5, 6],
+                                    [4, 5, 6, 7, 8]]))

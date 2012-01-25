@@ -131,7 +131,15 @@ class larray(object):
     @requires_shape
     def ncols(self):
         """Size of the second dimension (if it exists) of the array."""
-        return self.shape[1]
+        if len(self.shape) > 1:
+            return self.shape[1]
+        else:
+            return 1
+
+    @property
+    @requires_shape
+    def size(self):
+        return reduce(operator.mul, self.shape)
 
     @property
     def is_homogeneous(self):
@@ -142,6 +150,7 @@ class larray(object):
         return hom_base and hom_ops
 
     def _homogeneous_array(self, addr):
+        self.check_bounds(addr)
         def size(x, max):
             if isinstance(x, (int, long)):
                 return 1
@@ -151,11 +160,23 @@ class larray(object):
                 return len(x)
             else:
                 raise Exception("something went wrong")
-        shape = (size(x, max) for (x, max) in zip(addr, self.shape))
-        if len(shape) == 1 and shape[0] == 1:
+        addr = self._full_address(addr)
+        shape = [size(x, max) for (x, max) in zip(addr, self.shape)]
+        if shape == [1] or shape == [1, 1]:
             return 1
         else:
+            shape = [x for x in shape if x > 1] # remove empty dimensions
             return numpy.ones(shape, type(self.base_value))
+
+    def _full_address(self, addr):
+        if isinstance(addr, (int, long, slice)):
+            addr = (addr,)
+        if len(addr) < len(self.shape):
+            full_addr = [slice(None)] * len(self.shape)
+            for i, val in enumerate(addr):
+                full_addr[i] = val
+            addr = full_addr
+        return addr
 
     def _array_indices(self, addr):
         def axis_indices(x, max):
@@ -170,14 +191,9 @@ class larray(object):
                 return x
             else:
                 raise Exception("something went wrong")
-        if isinstance(addr, (int, long)):
-            addr = (addr,)
-        if len(addr) < len(self.shape):
-            full_addr = [slice(None)] * len(self.shape)
-            for i, val in enumerate(addr):
-                full_addr[i] = val
-            addr = full_addr
+        addr = self._full_address(addr)
         indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)]
+        #import pdb; pdb.set_trace()
         if len(indices) == 1:
             if isinstance(indices[0], collections.Sized):
                 return indices[0]
@@ -186,7 +202,8 @@ class larray(object):
         elif len(indices) == 2:
             if isinstance(indices[0], collections.Sized):
                 if isinstance(indices[1], collections.Sized):
-                    return numpy.meshgrid(*indices)
+                    mesh_xy = numpy.meshgrid(*indices)
+                    return (mesh_xy[0].T, mesh_xy[1].T) # meshgrid works on (x,y), not (i,j)
             return indices
         else:
             raise NotImplementedError("Only 1D and 2D arrays supported")
@@ -217,11 +234,20 @@ class larray(object):
         """
         Check whether the given address is within the array bounds.
         """
-        if isinstance(addr, (int, long, float)):
-            addr = (addr,)
-        for i, size in zip(addr, self.shape):
-            if (i < -size) or (i >= size):
+        def check_axis(x, size):
+            if isinstance(x, (int, long)):
+                lower = upper = x
+            elif isinstance(x, slice):
+                lower = x.start or 0
+                upper = x.stop or size-1
+            elif isinstance(x, collections.Sized):
+                lower = min(x)
+                upper = max(x)
+            if (lower < -size) or (upper >= size):
                 raise IndexError("index out of bounds")
+        addr = self._full_address(addr)
+        for i, size in zip(addr, self.shape):
+            check_axis(i, size)    
 
     def apply(self, f):
         """
@@ -266,10 +292,9 @@ class larray(object):
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
-            row_indices = numpy.arange(self.nrows, dtype=int)
-            x = numpy.array([self.base_value(row_indices, j) for j in range(self.ncols)]).T  # is this not equivalent to numpy.fromfunction?
+            x = numpy.fromfunction(self.base_value, shape=self.shape)
         elif isinstance(self.base_value, collections.Iterator):
-            x = numpy.fromiter(self.base_value, dtype=float)
+            x = numpy.fromiter(self.base_value, dtype=float, count=self.size)
             if x.shape != self.shape:
                 x = x.reshape(self.shape)
         else:
