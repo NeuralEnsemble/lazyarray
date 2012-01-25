@@ -11,3 +11,6 @@ In the `test` sub-directory, run::
 
     $ nosetests
     
+To see how well the tests cover the code base, run::
+
+    $ nosetests --with-coverage --cover-package=lazyarray --cover-erase --cover-html
