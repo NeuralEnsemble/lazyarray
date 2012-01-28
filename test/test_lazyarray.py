@@ -299,8 +299,25 @@ def test_getitem_with_mask_from_2D_functional_array():
                                     [9, 10],
                                     [11, 12]]))
 
+def test_getitem_with_mask_from_1D_functional_array():
+    m = larray(lambda i: numpy.sqrt(i), shape=(10,))
+    assert_array_equal(m[[0, 4, 9]],
+                       numpy.array([0, 1, 2]))
+
 def test_getslice_from_2D_functional_array():
     m = larray(lambda i,j: 2*i + j, shape=(6,5))
     assert_array_equal(m[1:3],
                        numpy.array([[2, 3, 4, 5, 6],
                                     [4, 5, 6, 7, 8]]))
+
+def test_getitem_from_array_with_operations():
+    a1 = numpy.array([[1, 3, 5], [7, 9, 11]])
+    m1 = larray(a1)
+    f = lambda i,j: numpy.sqrt(i*i + j*j)
+    a2 = numpy.fromfunction(f, shape=(2, 3))
+    m2 = larray(f, shape=(2, 3))
+    a3 = 3*a1 + a2
+    m3 = 3*m1 + m2
+    assert_array_equal(a3[:,(0,2)],
+                       m3[:,(0,2)])
+    

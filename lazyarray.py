@@ -13,6 +13,17 @@ from functools import wraps
 
 __version__ = "0.1.0dev"
 
+# stuff for Python 3 compatibility
+try:
+    long
+except NameError:
+    long = int
+
+try:
+    reduce
+except NameError:
+    from functools import reduce
+
 
 def check_shape(meth):
     """
@@ -158,8 +169,6 @@ class larray(object):
                 return ((x.stop or max) - (x.start or 0)) // (x.step or 1)
             elif isinstance(x, collections.Sized):
                 return len(x)
-            else:
-                raise Exception("something went wrong")
         addr = self._full_address(addr)
         shape = [size(x, max) for (x, max) in zip(addr, self.shape)]
         if shape == [1] or shape == [1, 1]:
@@ -179,6 +188,7 @@ class larray(object):
         return addr
 
     def _array_indices(self, addr):
+        self.check_bounds(addr)
         def axis_indices(x, max):
             if isinstance(x, (int, long)):
                 return x
@@ -189,8 +199,6 @@ class larray(object):
                                     dtype=int)
             elif isinstance(x, collections.Sized):
                 return x
-            else:
-                raise Exception("something went wrong")
         addr = self._full_address(addr)
         indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)]
         #import pdb; pdb.set_trace()
@@ -243,6 +251,8 @@ class larray(object):
             elif isinstance(x, collections.Sized):
                 lower = min(x)
                 upper = max(x)
+            else:
+                raise TypeError("check_bounds() requires a valid array address")
             if (lower < -size) or (upper >= size):
                 raise IndexError("index out of bounds")
         addr = self._full_address(addr)
