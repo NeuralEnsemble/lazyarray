@@ -296,6 +296,13 @@ def test_getitem_with_slice_from_2D_functional_array():
                                     [9, 10],
                                     [11, 12]]))
 
+def test_getitem_with_slice_from_2D_functional_array_2():
+    def test_function(i, j):
+        return i*i + 2*i*j + 3
+    m = larray(test_function, shape=(3,15))
+    assert_array_equal(m[:, 3:14:3],
+                       numpy.fromfunction(test_function, shape=(3,15))[:, 3:14:3])
+
 def test_getitem_with_mask_from_2D_functional_array():
     m = larray(lambda i,j: 2*i + j, shape=(6,5))
     assert_array_equal(m[[2, 3, 4], [3, 4]],

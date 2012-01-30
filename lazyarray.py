@@ -192,7 +192,7 @@ class larray(object):
         def axis_indices(x, max):
             if isinstance(x, (int, long)):
                 return x
-            elif isinstance(x, slice):
+            elif isinstance(x, slice): # need to handle negative values in slice
                 return numpy.arange((x.start or 0),
                                     (x.stop or max),
                                     (x.step or 1),
