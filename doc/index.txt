@@ -14,9 +14,9 @@ Use of an :class:`larray` can potentially save considerable computation time
 and memory in cases where:
 
     * arrays are used conditionally (i.e. there are cases in which the array is
-      never used)
+      never used);
     * only parts of an array are used (for example in distributed computation,
-      in which each MPI node operates on a subset of the elements of the array)
+      in which each MPI node operates on a subset of the elements of the array).
 
 It appears that much of this functionality may appear in a future version of
 NumPy (see `this discussion`_ on the numpy-discussion mailing list), but at the
