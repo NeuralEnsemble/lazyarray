@@ -18,6 +18,11 @@ and memory in cases where:
     * only parts of an array are used (for example in distributed computation,
       in which each MPI node operates on a subset of the elements of the array)
 
+It appears that much of this functionality may appear in a future version of
+NumPy (see `this discussion`_ on the numpy-discussion mailing list), but at the
+time of writing I couldn't find anything equivalent out there. DistNumPy_ might
+also be an alternative for some of the use cases of lazyarray.
+
 Contents
 ========
 
@@ -36,3 +41,5 @@ Licence
 The code is released under the Modified BSD licence.
 
 
+.. _`this discussion`: http://www.mail-archive.com/numpy-discussion@scipy.org/msg29732.html
+.. _DistNumPy: http://sites.google.com/site/distnumpy/

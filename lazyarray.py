@@ -178,7 +178,7 @@ class larray(object):
             return numpy.ones(shape, type(self.base_value))
 
     def _full_address(self, addr):
-        if isinstance(addr, (int, long, slice)):
+        if not isinstance(addr, tuple):
             addr = (addr,)
         if len(addr) < len(self.shape):
             full_addr = [slice(None)] * len(self.shape)
@@ -201,12 +201,8 @@ class larray(object):
                 return x
         addr = self._full_address(addr)
         indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)]
-        #import pdb; pdb.set_trace()
         if len(indices) == 1:
-            if isinstance(indices[0], collections.Sized):
-                return indices[0]
-            else:
-                return indices
+            return indices
         elif len(indices) == 2:
             if isinstance(indices[0], collections.Sized):
                 if isinstance(indices[1], collections.Sized):
@@ -232,9 +228,9 @@ class larray(object):
             indices = self._array_indices(addr)
             base_val = self.base_value(*indices)
         elif isinstance(self.base_value, collections.Iterator):
-            raise NotImplementedError
+            raise NotImplementedError("coming soon...")
         else:
-            raise Exception("something went wrong")
+            raise ValueError("invalid base value for array") 
         return self._apply_operations(base_val, addr, simplify=simplify)
 
     @requires_shape
@@ -308,7 +304,7 @@ class larray(object):
             if x.shape != self.shape:
                 x = x.reshape(self.shape)
         else:
-            raise Exception("invalid mapping")
+            raise ValueError("invalid base value for array")
         return self._apply_operations(x, simplify=simplify)
 
     __iadd__ = lazy_inplace_operation('add')
