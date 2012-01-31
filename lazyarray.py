@@ -11,7 +11,7 @@ from copy import deepcopy
 import collections
 from functools import wraps
 
-__version__ = "0.1.0dev"
+__version__ = "0.1.0"
 
 # stuff for Python 3 compatibility
 try:
