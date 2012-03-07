@@ -97,7 +97,7 @@ class larray(object):
         on different nodes or in different threads.
     """
 
-    def __init__(self, value, shape=None):
+    def __init__(self, value, shape=None, dtype=None):
         """
         Create a new lazy array.
 
@@ -109,17 +109,30 @@ class larray(object):
         and a 1D array when either `i` or `j` or both is a NumPy array (in the
         latter case the two arrays musy have equal lengths).
         """
-        if isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
+        if isinstance(value, larray):
+            if shape is not None and value.shape is not None:
+                assert shape == value.shape
+            self.shape = shape or value.shape
+            self.base_value = value.base_value
+            self.dtype = dtype or value.dtype
+        elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
             #assert numpy.isreal(value).all()
             if not isinstance(value, numpy.ndarray):
-                value = numpy.array(value)
+                value = numpy.array(value, dtype=dtype)
+            elif dtype is not None:
+                assert value.dtype == dtype # or could convert value to the provided dtype
             if shape:
                 assert value.shape == shape,  "Array has shape %s, value has shape %s" % (shape, value.shape)
             self.shape = value.shape
+            self.base_value = value
         else:
             assert numpy.isreal(value)  # also True for callables, generators, iterators
             self.shape = shape
-        self.base_value = value
+            if dtype is None:
+                self.base_value = value
+            else:
+                self.base_value = dtype(value)  # should only do this for numbers, not for callables, etc.
+        self.dtype = dtype
         self.operations = []
 
     def __deepcopy__(self, memo):
