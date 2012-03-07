@@ -107,8 +107,9 @@ class larray(object):
 
         `f(i,j)` should return a single number when `i` and `j` are integers,
         and a 1D array when either `i` or `j` or both is a NumPy array (in the
-        latter case the two arrays musy have equal lengths).
+        latter case the two arrays must have equal lengths).
         """
+        self.dtype = dtype
         if isinstance(value, larray):
             if shape is not None and value.shape is not None:
                 assert shape == value.shape
@@ -132,7 +133,6 @@ class larray(object):
                 self.base_value = value
             else:
                 self.base_value = dtype(value)  # should only do this for numbers, not for callables, etc.
-        self.dtype = dtype
         self.operations = []
 
     def __deepcopy__(self, memo):
@@ -142,6 +142,7 @@ class larray(object):
         except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
             obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
         obj.shape = self.shape
+        obj.dtype = self.dtype
         obj.operations = deepcopy(self.operations)
         return obj
 
@@ -168,7 +169,7 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        hom_base = isinstance(self.base_value, (int, long, float, bool))
+        hom_base = isinstance(self.base_value, (int, long, float, bool)) or type(self.base_value) == self.dtype
         hom_ops = all(isinstance(obj.base_value, (int, long, float, bool))
                       for obj in self.operations if  isinstance(obj, larray))
         return hom_base and hom_ops
