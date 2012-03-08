@@ -321,6 +321,10 @@ class larray(object):
             x = numpy.fromiter(self.base_value, dtype=float, count=self.size)
             if x.shape != self.shape:
                 x = x.reshape(self.shape)
+        elif isinstance(self.base_value, VectorizedIterable):
+            x = self.base_value.next(self.size)
+            if x.shape != self.shape:
+                x = x.reshape(self.shape)
         else:
             raise ValueError("invalid base value for array")
         return self._apply_operations(x, simplify=simplify)
@@ -363,6 +367,15 @@ def _build_ufunc(func):
         else:
             return func(x)
     return larray_compatible_ufunc
+
+
+class VectorizedIterable(object):
+    """
+    Base class for any class which has a method `next(n)`, i.e., where you
+    can choose how many values to return rather than just returning one at a
+    time.
+    """
+    pass
 
 
 # build lazy-array comptible versions of NumPy ufuncs
