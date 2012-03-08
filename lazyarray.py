@@ -110,12 +110,14 @@ class larray(object):
         latter case the two arrays must have equal lengths).
         """
         self.dtype = dtype
+        self.operations = []
         if isinstance(value, larray):
             if shape is not None and value.shape is not None:
                 assert shape == value.shape
             self.shape = shape or value.shape
             self.base_value = value.base_value
             self.dtype = dtype or value.dtype
+            self.operations = value.operations # should deepcopy?
         elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
             #assert numpy.isreal(value).all()
             if not isinstance(value, numpy.ndarray):
@@ -132,11 +134,13 @@ class larray(object):
             if dtype is None:
                 self.base_value = value
             else:
-                self.base_value = dtype(value)  # should only do this for numbers, not for callables, etc.
-        self.operations = []
+                try:
+                    self.base_value = dtype(value)
+                except TypeError:
+                    self.base_value = value
 
     def __deepcopy__(self, memo):
-        obj = larray.__new__(larray)
+        obj = type(self).__new__(type(self))
         try:
             obj.base_value = deepcopy(self.base_value)
         except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
