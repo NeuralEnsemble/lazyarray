@@ -11,7 +11,7 @@ from copy import deepcopy
 import collections
 from functools import wraps
 
-__version__ = "0.1.0"
+__version__ = "0.2.0dev"
 
 # stuff for Python 3 compatibility
 try:
@@ -239,7 +239,10 @@ class larray(object):
         Return part of the lazy array.
         """
         if self.is_homogeneous:
-            base_val = self._homogeneous_array(addr) * self.base_value
+            if simplify:
+                base_val = self.base_value                
+            else:
+                base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
             base_val = self.base_value[addr]
         elif callable(self.base_value):
@@ -248,7 +251,7 @@ class larray(object):
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError("coming soon...")
         else:
-            raise ValueError("invalid base value for array") 
+            raise ValueError("invalid base value for array")
         return self._apply_operations(base_val, addr, simplify=simplify)
 
     @requires_shape
@@ -317,12 +320,12 @@ class larray(object):
             x = self.base_value
         elif callable(self.base_value):
             x = numpy.fromfunction(self.base_value, shape=self.shape)
-        elif isinstance(self.base_value, collections.Iterator):
-            x = numpy.fromiter(self.base_value, dtype=float, count=self.size)
-            if x.shape != self.shape:
-                x = x.reshape(self.shape)
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
+            if x.shape != self.shape:
+                x = x.reshape(self.shape)
+        elif isinstance(self.base_value, collections.Iterator):
+            x = numpy.fromiter(self.base_value, dtype=float, count=self.size)
             if x.shape != self.shape:
                 x = x.reshape(self.shape)
         else:
