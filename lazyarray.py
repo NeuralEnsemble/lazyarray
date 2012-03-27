@@ -111,7 +111,9 @@ class larray(object):
         """
         self.dtype = dtype
         self.operations = []
-        if isinstance(value, larray):
+        if isinstance(value, basestring):
+            raise TypeError("An larray cannot be created from a string")
+        elif isinstance(value, larray):
             if shape is not None and value.shape is not None:
                 assert shape == value.shape
             self.shape = shape or value.shape
@@ -124,8 +126,8 @@ class larray(object):
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
                 assert value.dtype == dtype # or could convert value to the provided dtype
-            if shape:
-                assert value.shape == shape,  "Array has shape %s, value has shape %s" % (shape, value.shape)
+            if shape and value.shape != shape:
+                raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             self.shape = value.shape
             self.base_value = value
         else:
@@ -138,6 +140,9 @@ class larray(object):
                     self.base_value = dtype(value)
                 except TypeError:
                     self.base_value = value
+
+    def __eq__(self, other):
+        return self.base_value == other.base_value and self.operations == other.operations and self.shape == other.shape
 
     def __deepcopy__(self, memo):
         obj = type(self).__new__(type(self))
