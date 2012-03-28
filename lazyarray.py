@@ -33,7 +33,7 @@ def check_shape(meth):
     @wraps(meth)
     def wrapped_meth(self, val):
         if isinstance(val, (larray, numpy.ndarray)):
-            if val.shape != self.shape:
+            if val.shape != self._shape:
                 raise ValueError("shape mismatch: objects cannot be broadcast to a single shape")
         return meth(self, val)
     return wrapped_meth
@@ -42,7 +42,7 @@ def check_shape(meth):
 def requires_shape(meth):
     @wraps(meth)
     def wrapped_meth(self, *args, **kwargs):
-        if self.shape is None:
+        if self._shape is None:
             raise ValueError("Shape of larray not specified")
         return meth(self, *args, **kwargs)
     return wrapped_meth
@@ -116,7 +116,7 @@ class larray(object):
         elif isinstance(value, larray):
             if shape is not None and value.shape is not None:
                 assert shape == value.shape
-            self.shape = shape or value.shape
+            self._shape = shape or value.shape
             self.base_value = value.base_value
             self.dtype = dtype or value.dtype
             self.operations = value.operations # should deepcopy?
@@ -128,11 +128,11 @@ class larray(object):
                 assert value.dtype == dtype # or could convert value to the provided dtype
             if shape and value.shape != shape:
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
-            self.shape = value.shape
+            self._shape = value.shape
             self.base_value = value
         else:
             assert numpy.isreal(value)  # also True for callables, generators, iterators
-            self.shape = shape
+            self._shape = shape
             if dtype is None:
                 self.base_value = value
             else:
@@ -142,7 +142,7 @@ class larray(object):
                     self.base_value = value
 
     def __eq__(self, other):
-        return self.base_value == other.base_value and self.operations == other.operations and self.shape == other.shape
+        return self.base_value == other.base_value and self.operations == other.operations and self._shape == other.shape
 
     def __deepcopy__(self, memo):
         obj = type(self).__new__(type(self))
@@ -150,30 +150,38 @@ class larray(object):
             obj.base_value = deepcopy(self.base_value)
         except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
             obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
-        obj.shape = self.shape
+        obj._shape = self._shape
         obj.dtype = self.dtype
         obj.operations = deepcopy(self.operations)
         return obj
+
+    def _set_shape(self, value):
+        self._shape = value
+        for op in self.operations:
+            if isinstance(op[1], larray):
+                op[1].shape = value
+    shape = property(fget=lambda self: self._shape,
+                     fset=_set_shape)
 
     @property
     @requires_shape
     def nrows(self):
         """Size of the first dimension of the array."""
-        return self.shape[0]
+        return self._shape[0]
 
     @property
     @requires_shape
     def ncols(self):
         """Size of the second dimension (if it exists) of the array."""
         if len(self.shape) > 1:
-            return self.shape[1]
+            return self._shape[1]
         else:
             return 1
 
     @property
     @requires_shape
     def size(self):
-        return reduce(operator.mul, self.shape)
+        return reduce(operator.mul, self._shape)
 
     @property
     def is_homogeneous(self):
@@ -193,7 +201,7 @@ class larray(object):
             elif isinstance(x, collections.Sized):
                 return len(x)
         addr = self._full_address(addr)
-        shape = [size(x, max) for (x, max) in zip(addr, self.shape)]
+        shape = [size(x, max) for (x, max) in zip(addr, self._shape)]
         if shape == [1] or shape == [1, 1]:
             return 1
         else:
@@ -204,7 +212,7 @@ class larray(object):
         if not isinstance(addr, tuple):
             addr = (addr,)
         if len(addr) < len(self.shape):
-            full_addr = [slice(None)] * len(self.shape)
+            full_addr = [slice(None)] * len(self._shape)
             for i, val in enumerate(addr):
                 full_addr[i] = val
             addr = full_addr
@@ -223,7 +231,7 @@ class larray(object):
             elif isinstance(x, collections.Sized):
                 return x
         addr = self._full_address(addr)
-        indices = [axis_indices(x, max) for (x, max) in zip(addr, self.shape)]
+        indices = [axis_indices(x, max) for (x, max) in zip(addr, self._shape)]
         if len(indices) == 1:
             return indices
         elif len(indices) == 2:
@@ -280,7 +288,7 @@ class larray(object):
             if (lower < -size) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
-        for i, size in zip(full_addr, self.shape):
+        for i, size in zip(full_addr, self._shape):
             check_axis(i, size)    
 
     def apply(self, f):
@@ -322,19 +330,19 @@ class larray(object):
             if simplify:
                 x = self.base_value
             else:
-                x = self.base_value * numpy.ones(self.shape)
+                x = self.base_value * numpy.ones(self._shape)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
-            x = numpy.fromfunction(self.base_value, shape=self.shape)
+            x = numpy.fromfunction(self.base_value, shape=self._shape)
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
-            if x.shape != self.shape:
-                x = x.reshape(self.shape)
+            if x.shape != self._shape:
+                x = x.reshape(self._shape)
         elif isinstance(self.base_value, collections.Iterator):
             x = numpy.fromiter(self.base_value, dtype=float, count=self.size)
-            if x.shape != self.shape:
-                x = x.reshape(self.shape)
+            if x.shape != self._shape:
+                x = x.reshape(self._shape)
         else:
             raise ValueError("invalid base value for array")
         return self._apply_operations(x, simplify=simplify)
