@@ -67,10 +67,10 @@ def test_create_with_function2D():
                                     [-2, 1, 4]]))
 
 def test_create_inconsistent():
-    assert_raises(AssertionError, larray, [1,2,3], shape=4)
+    assert_raises(ValueError, larray, [1,2,3], shape=4)
 
 def test_create_with_string():
-    assert_raises(AssertionError, larray, "123", shape=3)
+    assert_raises(TypeError, larray, "123", shape=3)
     
 #def test_columnwise_iteration_with_flat_array():
 #    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
