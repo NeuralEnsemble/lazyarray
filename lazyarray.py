@@ -271,14 +271,16 @@ class larray(object):
                 lower = x.start or 0
                 upper = x.stop or size-1
             elif isinstance(x, collections.Sized):
+                if len(x) == 0:
+                    raise ValueError("Empty address component (address was %s)" % addr)
                 lower = min(x)
                 upper = max(x)
             else:
-                raise TypeError("check_bounds() requires a valid array address")
+                raise TypeError("Invalid array address: %s" % addr)
             if (lower < -size) or (upper >= size):
-                raise IndexError("index out of bounds")
-        addr = self._full_address(addr)
-        for i, size in zip(addr, self.shape):
+                raise IndexError("Index out of bounds")
+        full_addr = self._full_address(addr)
+        for i, size in zip(full_addr, self.shape):
             check_axis(i, size)    
 
     def apply(self, f):
