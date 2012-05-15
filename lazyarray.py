@@ -253,7 +253,7 @@ class larray(object):
         """
         if self.is_homogeneous:
             if simplify:
-                base_val = self.base_value                
+                base_val = self.base_value
             else:
                 base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
@@ -261,6 +261,11 @@ class larray(object):
         elif callable(self.base_value):
             indices = self._array_indices(addr)
             base_val = self.base_value(*indices)
+        elif isinstance(self.base_value, VectorizedIterable):
+            base_val = self.base_value.next(self.size)
+            if base_val.shape != self._shape:
+                base_val = base_val.reshape(self._shape)
+            base_val = base_val[addr]
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError("coming soon...")
         else:
@@ -289,7 +294,7 @@ class larray(object):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
         for i, size in zip(full_addr, self._shape):
-            check_axis(i, size)    
+            check_axis(i, size)
 
     def apply(self, f):
         """
@@ -310,7 +315,7 @@ class larray(object):
                 x = f(x)
             elif isinstance(arg, larray):
                 if addr is None:
-                    x = f(x, arg.evaluate(simplify=simplify))  
+                    x = f(x, arg.evaluate(simplify=simplify))
                 else:
                     x = f(x, arg._partially_evaluate(addr, simplify=simplify))
             else:
@@ -334,7 +339,7 @@ class larray(object):
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
-            x = numpy.fromfunction(self.base_value, shape=self._shape)
+            x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape))
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
