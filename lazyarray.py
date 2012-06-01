@@ -286,8 +286,14 @@ class larray(object):
             elif isinstance(x, collections.Sized):
                 if len(x) == 0:
                     raise ValueError("Empty address component (address was %s)" % addr)
-                lower = min(x)
-                upper = max(x)
+                if hasattr(x, "min"):
+                    lower = x.min()
+                else:
+                    lower = min(x)
+                if hasattr(x, "max"):
+                    upper = x.max()
+                else:
+                    upper = max(x)
             else:
                 raise TypeError("Invalid array address: %s" % addr)
             if (lower < -size) or (upper >= size):
