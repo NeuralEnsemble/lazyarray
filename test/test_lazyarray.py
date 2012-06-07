@@ -349,3 +349,23 @@ def test_partially_evaluate_with_invalid_base_value():
 def test_check_bounds_with_invalid_address():
     m = larray([[1, 3, 5], [7, 9, 11]])
     assert_raises(TypeError, m.check_bounds, (object(), 1))
+    
+def test_partially_evaluate_constant_array_with_boolean_index():
+    m = larray(3, shape=(4,5))
+    a = 3*numpy.ones((4, 5))
+    addr_bool = numpy.array([True, True, False, False, True])
+    addr_int = numpy.array([0, 1, 4])
+    assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
+    assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
+    assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
+    
+def test_partially_evaluate_functional_array_with_boolean_index():
+    m = larray(lambda i,j: 5*i + j, shape=(4,5))
+    a = numpy.arange(20.0).reshape((4, 5))
+    addr_bool = numpy.array([True, True, False, False, True])
+    addr_int = numpy.array([0, 1, 4])
+    assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
+    assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
+    assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
+    
+    

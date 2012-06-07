@@ -10,6 +10,7 @@ import operator
 from copy import deepcopy
 import collections
 from functools import wraps
+import logging
 
 __version__ = "0.2.0dev"
 
@@ -23,6 +24,8 @@ try:
     reduce
 except NameError:
     from functools import reduce
+
+logger = logging.getLogger("lazyarray")
 
 
 def check_shape(meth):
@@ -191,21 +194,33 @@ class larray(object):
                       for obj in self.operations if  isinstance(obj, larray))
         return hom_base and hom_ops
 
-    def _homogeneous_array(self, addr):
-        self.check_bounds(addr)
+    def _partial_shape(self, addr):
+        """
+        Calculate the size of the sub-array represented by `addr`
+        """
         def size(x, max):
             if isinstance(x, (int, long)):
                 return 1
             elif isinstance(x, slice):
                 return ((x.stop or max) - (x.start or 0)) // (x.step or 1)
             elif isinstance(x, collections.Sized):
-                return len(x)
+                if hasattr(x, 'dtype') and x.dtype == bool:
+                    return x.sum()
+                else:
+                    return len(x)
         addr = self._full_address(addr)
         shape = [size(x, max) for (x, max) in zip(addr, self._shape)]
         if shape == [1] or shape == [1, 1]:
+            return [1]
+        else:
+            return [x for x in shape if x > 1] # remove empty dimensions
+
+    def _homogeneous_array(self, addr):
+        self.check_bounds(addr)
+        shape = self._partial_shape(addr)
+        if shape == [1]:
             return 1
         else:
-            shape = [x for x in shape if x > 1] # remove empty dimensions
             return numpy.ones(shape, type(self.base_value))
 
     def _full_address(self, addr):
@@ -229,7 +244,10 @@ class larray(object):
                                     (x.step or 1),
                                     dtype=int)
             elif isinstance(x, collections.Sized):
-                return x
+                if hasattr(x, 'dtype') and x.dtype == bool:
+                    return numpy.arange(max)[x]                
+                else:
+                    return x
         addr = self._full_address(addr)
         indices = [axis_indices(x, max) for (x, max) in zip(addr, self._shape)]
         if len(indices) == 1:
@@ -262,10 +280,14 @@ class larray(object):
             indices = self._array_indices(addr)
             base_val = self.base_value(*indices)
         elif isinstance(self.base_value, VectorizedIterable):
-            base_val = self.base_value.next(self.size)
-            if base_val.shape != self._shape:
-                base_val = base_val.reshape(self._shape)
-            base_val = base_val[addr]
+            partial_shape = self._partial_shape(addr)
+            if partial_shape:
+                n = reduce(operator.mul, partial_shape)
+            else:
+                n = 0
+            base_val = self.base_value.next(n) # note that the array contents will depend on the order of access to elements
+            if partial_shape and base_val.shape != partial_shape:
+                base_val = base_val.reshape(partial_shape)
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError("coming soon...")
         else:
