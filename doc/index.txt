@@ -1,0 +1,45 @@
+=========
+lazyarray
+=========
+
+lazyarray is a Python package that provides a lazily-evaluated numerical array
+class, :class:`larray`, based on and compatible with NumPy arrays.
+
+Lazy evaluation means that any operations on the array (potentially including
+array construction) are not performed immediately, but are delayed until
+evaluation is specifically requested. Evaluation of only parts of the array is
+also possible.
+
+Use of an :class:`larray` can potentially save considerable computation time
+and memory in cases where:
+
+    * arrays are used conditionally (i.e. there are cases in which the array is
+      never used);
+    * only parts of an array are used (for example in distributed computation,
+      in which each MPI node operates on a subset of the elements of the array).
+
+It appears that much of this functionality may appear in a future version of
+NumPy (see `this discussion`_ on the numpy-discussion mailing list), but at the
+time of writing I couldn't find anything equivalent out there. DistNumPy_ might
+also be an alternative for some of the use cases of lazyarray.
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   installation
+   tutorial
+   performance
+   reference
+   developers
+
+Licence
+=======
+
+The code is released under the Modified BSD licence.
+
+
+.. _`this discussion`: http://www.mail-archive.com/numpy-discussion@scipy.org/msg29732.html
+.. _DistNumPy: http://sites.google.com/site/distnumpy/

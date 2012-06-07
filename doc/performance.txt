@@ -1,0 +1,44 @@
+===========
+Performance
+===========
+
+The main aim of lazyarray is to improve performance (increased speed and
+reduced memory use) in two scenarios:
+
+    * arrays are used conditionally (i.e. there are cases in which the array is
+      never used);
+    * only parts of an array are used (for example in distributed computation,
+      in which each MPI node operates on a subset of the elements of the array).
+      
+However, at the same time use of :class:`larray` objects should not be too much
+slower than plain NumPy arrays in normal use.
+
+Here we see that using a lazyarray adds minimal overhead compared to using a
+plain array:
+
+::
+
+    >>> from timeit import repeat
+    >>> repeat('np.fromfunction(lambda i,j: i*i + 2*i*j + 3, (5000, 5000))',
+    ...        setup='import numpy as np', number=1, repeat=5)
+    [1.9397640228271484, 1.92628812789917, 1.8796701431274414, 1.6766629219055176, 1.6844701766967773]
+    >>> repeat('larray(lambda i,j: i*i + 2*i*j + 3, (5000, 5000)).evaluate()',
+    ...        setup='from lazyarray import larray', number=1, repeat=5)
+    [1.686661958694458, 1.6836578845977783, 1.6853220462799072, 1.6538069248199463, 1.645576000213623]
+    
+While if we only need to evaluate part of the array (perhaps because the other
+parts are being evaluated on other nodes), there is a major gain from using a
+lazy array.
+
+::
+
+    >>> repeat('np.fromfunction(lambda i,j: i*i + 2*i*j + 3, (5000, 5000))[:, 0:4999:10]',
+    ...        setup='import numpy as np', number=1, repeat=5)
+    [1.691796064376831, 1.668884038925171, 1.647057056427002, 1.6792259216308594, 1.652547836303711]
+    >>> repeat('larray(lambda i,j: i*i + 2*i*j + 3, (5000, 5000))[:, 0:4999:10]',
+    ...        setup='from lazyarray import larray', number=1, repeat=5)
+    [0.23157119750976562, 0.16121792793273926, 0.1594078540802002, 0.16096210479736328, 0.16096997261047363]
+    
+
+.. note:: These timings were done on a MacBook Pro 2.8 GHz Intel Core 2 Duo
+          with 4 GB RAM, Python 2.7 and NumPy 1.6.1.
