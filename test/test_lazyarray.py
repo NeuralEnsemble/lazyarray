@@ -13,11 +13,11 @@ import operator
 
 #class MockRNG(random.WrappedRNG):
 #    rng = None
-#    
+#
 #    def __init__(self, parallel_safe):
 #        random.WrappedRNG.__init__(self, parallel_safe=parallel_safe)
 #        self.start = 0.0
-#    
+#
 #    def _next(self, distribution, n, parameters):
 #        s = self.start
 #        self.start += n*0.1
@@ -71,7 +71,7 @@ def test_create_inconsistent():
 
 def test_create_with_string():
     assert_raises(TypeError, larray, "123", shape=3)
-    
+
 #def test_columnwise_iteration_with_flat_array():
 #    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
 #    cols = [col for col in m.by_column()]
@@ -80,10 +80,10 @@ def test_create_with_string():
 #def test_columnwise_iteration_with_structured_array():
 #    input = numpy.arange(12).reshape((4,3))
 #    m = larray(input, shape=(4,3)) # 4 rows, 3 columns
-#    cols = [col for col in m.by_column()]    
+#    cols = [col for col in m.by_column()]
 #    assert_array_equal(cols[0], input[:,0])
 #    assert_array_equal(cols[2], input[:,2])
-#    
+#
 #def test_columnwise_iteration_with_function():
 #    input = lambda i,j: 2*i + j
 #    m = larray(input, shape=(4,3))
@@ -91,18 +91,18 @@ def test_create_with_string():
 #    assert_array_equal(cols[0], numpy.array([0, 2, 4, 6]))
 #    assert_array_equal(cols[1], numpy.array([1, 3, 5, 7]))
 #    assert_array_equal(cols[2], numpy.array([2, 4, 6, 8]))
-#    
+#
 #def test_columnwise_iteration_with_flat_array_and_mask():
 #    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
 #    mask = numpy.array([True, False, True])
 #    cols = [col for col in m.by_column(mask=mask)]
 #    assert_equal(cols, [5, 5])
-#    
+#
 #def test_columnwise_iteration_with_structured_array_and_mask():
 #    input = numpy.arange(12).reshape((4,3))
 #    m = larray(input, shape=(4,3)) # 4 rows, 3 columns
 #    mask = numpy.array([False, True, True])
-#    cols = [col for col in m.by_column(mask=mask)]    
+#    cols = [col for col in m.by_column(mask=mask)]
 #    assert_array_equal(cols[0], input[:,1])
 #    assert_array_equal(cols[1], input[:,2])
 
@@ -156,13 +156,13 @@ def test_lt_with_flat_array():
     m1 = m0 < 10
     assert_equal(m1.evaluate(simplify=True), True)
     assert_equal(m0.evaluate(simplify=True), 5)
-    
+
 def test_lt_with_structured_array():
     input = numpy.arange(12).reshape((4,3))
     m0 = larray(input, shape=(4,3))
     m1 = m0 < 5
     assert_array_equal(m1.evaluate(simplify=True), input < 5)
-    
+
 def test_structured_array_lt_array():
     input = numpy.arange(12).reshape((4,3))
     m0 = larray(input, shape=(4,3))
@@ -196,6 +196,14 @@ def test_multiple_operations_with_structured_array():
     assert_array_equal(m1.evaluate(simplify=True), (input+2)<5)
     assert_array_equal(m2.evaluate(simplify=True), (input<5)+2)
     assert_array_equal(m0.evaluate(simplify=True), input)
+
+def test_multiple_operations_with_functional_array():
+    m = larray(lambda i: i, shape=(5,))
+    m0 = m/100.0
+    m1 = 0.2 + m0
+    assert_array_almost_equal(m0.evaluate(), numpy.array([0.0, 0.01, 0.02, 0.03, 0.04]), decimal=12)
+    assert_array_almost_equal(m1.evaluate(), numpy.array([0.20, 0.21, 0.22, 0.23, 0.24]), decimal=12)
+    assert_equal(m1[0], 0.2)
 
 def test_apply_function_to_constant_array():
     f = lambda m: 2*m + 3
@@ -235,12 +243,12 @@ def test_add_two_constant_arrays():
     # it is just to check I understand what's going on
     assert_equal(m2.base_value, m0.base_value)
     assert_equal(m2.operations, [(operator.add, m1)])
-    
+
 def test_add_incommensurate_arrays():
     m0 = larray(5, shape=(4,3))
     m1 = larray(7, shape=(5,3))
     assert_raises(ValueError, m0.__add__, m1)
-    
+
 def test_getitem_from_2D_constant_array():
     m = larray(3, shape=(4,3))
     assert m[0,0] == m[3,2] == m[-1,2] == m[-4,2] == m[2,-3] == 3
@@ -263,7 +271,7 @@ def test_getitem__with_thinslice_from_constant_array():
 def test_getitem__with_mask_from_constant_array():
     m = larray(3, shape=(4, 3))
     assert_array_equal(m[1, (0, 2)],
-                       numpy.array([3, 3]))    
+                       numpy.array([3, 3]))
 
 def test_getslice_from_constant_array():
     m = larray(3, shape=(4, 3))
@@ -340,7 +348,7 @@ def test_evaluate_with_invalid_base_value():
     m = larray(range(5))
     m.base_value = "foo"
     assert_raises(ValueError, m.evaluate)
-    
+
 def test_partially_evaluate_with_invalid_base_value():
     m = larray(range(5))
     m.base_value = "foo"
@@ -349,7 +357,7 @@ def test_partially_evaluate_with_invalid_base_value():
 def test_check_bounds_with_invalid_address():
     m = larray([[1, 3, 5], [7, 9, 11]])
     assert_raises(TypeError, m.check_bounds, (object(), 1))
-    
+
 def test_partially_evaluate_constant_array_with_boolean_index():
     m = larray(3, shape=(4,5))
     a = 3*numpy.ones((4, 5))
@@ -358,7 +366,7 @@ def test_partially_evaluate_constant_array_with_boolean_index():
     assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
     assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
     assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
-    
+
 def test_partially_evaluate_functional_array_with_boolean_index():
     m = larray(lambda i,j: 5*i + j, shape=(4,5))
     a = numpy.arange(20.0).reshape((4, 5))
@@ -367,5 +375,3 @@ def test_partially_evaluate_functional_array_with_boolean_index():
     assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
     assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
     assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
-    
-    
