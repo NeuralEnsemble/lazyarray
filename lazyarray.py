@@ -155,7 +155,12 @@ class larray(object):
             obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
         obj._shape = self._shape
         obj.dtype = self.dtype
-        obj.operations = deepcopy(self.operations)
+        obj.operations = []
+        for f, arg in self.operations:
+            if isinstance(f, numpy.ufunc):
+                obj.operations.append((f, deepcopy(arg)))
+            else:
+                obj.operations.append((deepcopy(f), deepcopy(arg)))
         return obj
 
     def _set_shape(self, value):
@@ -245,7 +250,7 @@ class larray(object):
                                     dtype=int)
             elif isinstance(x, collections.Sized):
                 if hasattr(x, 'dtype') and x.dtype == bool:
-                    return numpy.arange(max)[x]                
+                    return numpy.arange(max)[x]
                 else:
                     return x
         addr = self._full_address(addr)
