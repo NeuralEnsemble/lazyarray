@@ -400,7 +400,7 @@ class larray(object):
     __div__  = lazy_operation('div')
     __rdiv__ = lazy_operation('div', reversed=True)
     __truediv__ = lazy_operation('truediv')
-    __truediv__ = lazy_operation('truediv', reversed=True)
+    __rtruediv__ = lazy_operation('truediv', reversed=True)
     __pow__  = lazy_operation('pow')
 
     __lt__   = lazy_operation('lt')
