@@ -53,10 +53,14 @@ def requires_shape(meth):
 
 def reverse(func):
     """Given a function f(a, b), returns f(b, a)"""
+    @wraps(func)
     def reversed_func(a, b):
         return func(b, a)
     reversed_func.__doc__ = "Reversed argument form of %s" % func.__doc__
+    reversed_func.__name__ = "reversed %s" % func.__name__
     return reversed_func
+# "The hash of a function object is hash(func_code) ^ id(func_globals)" ?
+# see http://mail.python.org/pipermail/python-dev/2000-April/003397.html
 
 
 def lazy_operation(name, reversed=False):
@@ -207,7 +211,7 @@ class larray(object):
             if isinstance(x, (int, long)):
                 return 1
             elif isinstance(x, slice):
-                return ((x.stop or max) - (x.start or 0)) // (x.step or 1)
+                return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
             elif isinstance(x, collections.Sized):
                 if hasattr(x, 'dtype') and x.dtype == bool:
                     return x.sum()
@@ -312,7 +316,7 @@ class larray(object):
                 upper = x.stop or size-1
             elif isinstance(x, collections.Sized):
                 if len(x) == 0:
-                    raise ValueError("Empty address component (address was %s)" % addr)
+                    raise ValueError("Empty address component (address was %s)" % str(addr))
                 if hasattr(x, "min"):
                     lower = x.min()
                 else:
@@ -368,17 +372,17 @@ class larray(object):
             if simplify:
                 x = self.base_value
             else:
-                x = self.base_value * numpy.ones(self._shape)
+                x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
-            x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape))
+            x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape), dtype=self.dtype)
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
         elif isinstance(self.base_value, collections.Iterator):
-            x = numpy.fromiter(self.base_value, dtype=float, count=self.size)
+            x = numpy.fromiter(self.base_value, dtype=self.dtype or float, count=self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
         else:
