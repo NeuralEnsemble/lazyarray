@@ -1,3 +1,4 @@
 include LICENSE
+include changelog.txt
 recursive-include doc *.txt
 prune doc/_build

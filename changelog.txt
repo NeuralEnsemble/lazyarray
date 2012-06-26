@@ -1,0 +1,16 @@
+=======
+Changes
+=======
+
+Release 0.2.0
+=============
+
+* Fixed problems with deepcopying lazy arrays.
+* Optimization - uses `x.min()` rather than `min(x)` where possible.
+* Some fixes for when using boolean addressing.
+* Setting shape on an larray now also sets it on all larrays within the operations list.
+* Added `__eq__` method to larray.
+* Replaced some assertions with more specific Exceptions.
+* Added support for 'vectorized iterables', i.e. objects with a `next(n)` method so that you can return multiple values at once.
+* Fixed some bugs when creating a lazy array from an existing lazy array.
+* Added `dtype` attribute to `larray` class.
