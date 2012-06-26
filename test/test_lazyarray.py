@@ -4,29 +4,34 @@ Unit tests for ``larray`` class
 Copyright Andrew P. Davison, 2012
 """
 
-from lazyarray import larray
+from lazyarray import larray, VectorizedIterable, sqrt
 import numpy
 from nose.tools import assert_raises, assert_equal
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import operator
+from copy import deepcopy
 
 
-#class MockRNG(random.WrappedRNG):
-#    rng = None
-#
-#    def __init__(self, parallel_safe):
-#        random.WrappedRNG.__init__(self, parallel_safe=parallel_safe)
-#        self.start = 0.0
-#
-#    def _next(self, distribution, n, parameters):
-#        s = self.start
-#        self.start += n*0.1
-#        return numpy.arange(s, s+n*0.1, 0.1)
+class MockRNG(VectorizedIterable):
+
+    def __init__(self, start, delta):
+        self.start = start
+        self.delta = delta
+
+    def next(self, n):
+        s = self.start
+        self.start += n*self.delta
+        return s + self.delta*numpy.arange(n)
 
 
 # test larray
 def test_create_with_int():
     A = larray(3, shape=(5,))
+    assert A.shape == (5,)
+    assert A.evaluate(simplify=True) == 3
+
+def test_create_with_int_and_dtype():
+    A = larray(3, shape=(5,), dtype=float)
     assert A.shape == (5,)
     assert A.evaluate(simplify=True) == 3
 
@@ -45,6 +50,11 @@ def test_create_with_array():
     assert A.shape == (3,)
     assert_array_equal(A.evaluate(), numpy.array([1,2,3]))
 
+def test_create_with_array_and_dtype():
+    A = larray(numpy.array([1,2,3]), shape=(3,), dtype=int)
+    assert A.shape == (3,)
+    assert_array_equal(A.evaluate(), numpy.array([1,2,3]))
+
 def test_create_with_generator():
     def plusone():
         i = 0
@@ -60,6 +70,11 @@ def test_create_with_function1D():
     assert_array_equal(A.evaluate(),
                        numpy.array([99, 98, 97]))
 
+def test_create_with_function1D_and_dtype():
+    A = larray(lambda i: 99-i, shape=(3,), dtype=float)
+    assert_array_equal(A.evaluate(),
+                       numpy.array([99.0, 98.0, 97.0]))
+
 def test_create_with_function2D():
     A = larray(lambda i,j: 3*j-2*i, shape=(2, 3))
     assert_array_equal(A.evaluate(),
@@ -71,6 +86,13 @@ def test_create_inconsistent():
 
 def test_create_with_string():
     assert_raises(TypeError, larray, "123", shape=3)
+
+
+def test_create_with_larray():
+    A = 3 + larray(lambda i: 99-i, shape=(3,))
+    B = larray(A, shape=(3,), dtype=int)
+    assert_array_equal(B.evaluate(),
+                       numpy.array([102, 101, 100]))
 
 #def test_columnwise_iteration_with_flat_array():
 #    m = larray(5, shape=(4,3)) # 4 rows, 3 columns
@@ -137,6 +159,12 @@ def test_evaluate_with_functional_array():
                                      [2, 3, 4],
                                      [4, 5, 6],
                                      [6, 7, 8]]))
+
+def test_evaluate_with_vectorized_iterable():
+    input = MockRNG(0, 1)
+    m = larray(input, shape=(7, 3))
+    assert_array_equal(m.evaluate(),
+                       numpy.arange(21).reshape((7,3)))
 
 def test_iadd_with_flat_array():
     m = larray(5, shape=(4,3))
@@ -358,6 +386,10 @@ def test_check_bounds_with_invalid_address():
     m = larray([[1, 3, 5], [7, 9, 11]])
     assert_raises(TypeError, m.check_bounds, (object(), 1))
 
+def test_check_bounds_with_invalid_address2():
+    m = larray([[1, 3, 5], [7, 9, 11]])
+    assert_raises(ValueError, m.check_bounds, ([], 1))
+
 def test_partially_evaluate_constant_array_with_boolean_index():
     m = larray(3, shape=(4,5))
     a = 3*numpy.ones((4, 5))
@@ -375,3 +407,36 @@ def test_partially_evaluate_functional_array_with_boolean_index():
     assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
     assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
     assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
+
+def test_getslice_with_vectorized_iterable():
+    input = MockRNG(0, 1)
+    m = larray(input, shape=(7, 3))
+    assert_array_equal(m[::2, (0, 2)],
+                       numpy.arange(8).reshape((4,2)))
+
+def test_equality():
+    m1 = larray(42.0, shape=(4,5))/23.0 + 2.0
+    m2 = larray(42.0, shape=(4,5))/23.0 + 2.0
+    assert_equal(m1, m2)
+
+def test_deepcopy():
+    m1 = 3*larray(lambda i,j: 5*i + j, shape=(4,5)) + 2
+    m2 = deepcopy(m1)
+    m1.shape = (3, 4)
+    m3 = deepcopy(m1)
+    assert_equal(m1.shape, m3.shape, (3, 4))
+    assert_equal(m2.shape, (4, 5))
+    assert_array_equal(m1.evaluate(), m3.evaluate())
+
+def test_deepcopy_with_ufunc():
+    m1 = sqrt(larray([x**2 for x in range(5)]))
+    m2 = deepcopy(m1)
+    m1.base_value[0] = 49
+    assert_array_equal(m1.evaluate(), numpy.array([7, 1, 2, 3, 4]))
+    assert_array_equal(m2.evaluate(), numpy.array([0, 1, 2, 3, 4]))
+
+def test_set_shape():
+    m = larray(42) + larray(lambda i: 3*i)
+    assert_equal(m.shape, None)
+    m.shape = (5,)
+    assert_array_equal(m.evaluate(), numpy.array([42, 45, 48, 51, 54]))
