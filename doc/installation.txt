@@ -21,12 +21,12 @@ to have administrator privileges on the machine you are installing on).
     
 To download and install manually, download:
 
-    http://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.2.0.tar.gz#md5=4ca76c980aa2c85e07979f15d4464b4b
+    http://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.2.1.tar.gz#md5=06b755b5e19481d9007fcbd0117c1de6
 
 Then::
 
-    $ tar xzf lazyarray-0.2.0.tar.gz
-    $ cd lazyarray-0.2.0
+    $ tar xzf lazyarray-0.2.1.tar.gz
+    $ cd lazyarray-0.2.1
     $ python setup.py install
     
 or::
