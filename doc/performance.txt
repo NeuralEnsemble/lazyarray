@@ -26,7 +26,7 @@ plain array:
     ...        setup='from lazyarray import larray', number=1, repeat=5)
     [1.686661958694458, 1.6836578845977783, 1.6853220462799072, 1.6538069248199463, 1.645576000213623]
     
-While if we only need to evaluate part of the array (perhaps because the other
+while if we only need to evaluate part of the array (perhaps because the other
 parts are being evaluated on other nodes), there is a major gain from using a
 lazy array.
 

@@ -173,7 +173,7 @@ class larray(object):
             if isinstance(op[1], larray):
                 op[1].shape = value
     shape = property(fget=lambda self: self._shape,
-                     fset=_set_shape)
+                     fset=_set_shape, doc="Shape of the array")
 
     @property
     @requires_shape
