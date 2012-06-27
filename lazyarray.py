@@ -12,7 +12,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.1"
+__version__ = "0.2.2dev"
 
 # stuff for Python 3 compatibility
 try:
