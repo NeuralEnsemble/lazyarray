@@ -4,7 +4,7 @@ Reference
 
 
 .. autoclass:: lazyarray.larray
-   :members: apply, nrows, ncols, is_homogeneous
+   :members: apply, nrows, ncols, is_homogeneous, shape
 
    .. method:: evaluate(simplify=False)
    
@@ -12,6 +12,3 @@ Reference
       
       If the array is homogeneous and ``simplify`` is ``True``, return a single
       numerical value.
-      
-      
-# need to document shape attribute
