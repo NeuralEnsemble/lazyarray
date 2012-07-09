@@ -24,12 +24,12 @@ try:
     reduce
 except NameError:
     from functools import reduce
-    
+
 try:
     basestring
 except NameError:
     basestring = str
-    
+
 
 logger = logging.getLogger("lazyarray")
 
@@ -382,7 +382,7 @@ class larray(object):
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
-            x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape), dtype=self.dtype)
+            x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape, dtype=int), dtype=self.dtype)
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
