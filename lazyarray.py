@@ -303,6 +303,8 @@ class larray(object):
             base_val = self.base_value.next(n) # note that the array contents will depend on the order of access to elements
             if partial_shape and base_val.shape != partial_shape:
                 base_val = base_val.reshape(partial_shape)
+            if n == 1:
+                base_val = base_val[0]
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError("coming soon...")
         else:

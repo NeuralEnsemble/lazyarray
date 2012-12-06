@@ -325,6 +325,14 @@ def test_getitem_from_3D_functional_array():
     m = larray(lambda i,j,k: i+j+k, shape=(2,3,4))
     assert_raises(NotImplementedError, m.__getitem__, (0,1,2))
 
+def test_getitem_from_vectorized_iterable():
+    input = MockRNG(0, 1)
+    m = larray(input, shape=(7,))
+    m3 = m[3]
+    assert isinstance(m3, int)
+    assert_equal(m3, 0)
+    assert_equal(m[0], 1)
+
 def test_getitem_with_slice_from_2D_functional_array():
     m = larray(lambda i,j: 2*i + j, shape=(6,5))
     assert_array_equal(m[2:5, 3:],
