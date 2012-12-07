@@ -274,7 +274,7 @@ class larray(object):
                 if hasattr(x, 'dtype') and x.dtype == bool:
                     return numpy.arange(max)[x]
                 else:
-                    return x
+                    return numpy.array(x)
         addr = self._full_address(addr)
         indices = [axis_indices(x, max) for (x, max) in zip(addr, self._shape)]
         if len(indices) == 1:
