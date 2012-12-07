@@ -57,6 +57,39 @@ def requires_shape(meth):
     return wrapped_meth
 
 
+def full_address(addr, full_shape):
+    if not isinstance(addr, tuple):
+        addr = (addr,)
+    if len(addr) < len(full_shape):
+        full_addr = [slice(None)] * len(full_shape)
+        for i, val in enumerate(addr):
+            full_addr[i] = val
+        addr = full_addr
+    return addr
+
+
+def partial_shape(addr, full_shape):
+    """
+    Calculate the size of the sub-array represented by `addr`
+    """
+    def size(x, max):
+        if isinstance(x, (int, long)):
+            return 1
+        elif isinstance(x, slice):
+            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
+        elif isinstance(x, collections.Sized):
+            if hasattr(x, 'dtype') and x.dtype == bool:
+                return x.sum()
+            else:
+                return len(x)
+    addr = full_address(addr, full_shape)
+    shape = [size(x, max) for (x, max) in zip(addr, full_shape)]
+    if shape == [1] or shape == [1, 1]:
+        return [1]
+    else:
+        return [x for x in shape if x > 1] # remove empty dimensions
+
+
 def reverse(func):
     """Given a function f(a, b), returns f(b, a)"""
     @wraps(func)
@@ -199,6 +232,7 @@ class larray(object):
     @property
     @requires_shape
     def size(self):
+        """Total number of elements in the array."""
         return reduce(operator.mul, self._shape)
 
     @property
@@ -213,22 +247,7 @@ class larray(object):
         """
         Calculate the size of the sub-array represented by `addr`
         """
-        def size(x, max):
-            if isinstance(x, (int, long)):
-                return 1
-            elif isinstance(x, slice):
-                return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
-            elif isinstance(x, collections.Sized):
-                if hasattr(x, 'dtype') and x.dtype == bool:
-                    return x.sum()
-                else:
-                    return len(x)
-        addr = self._full_address(addr)
-        shape = [size(x, max) for (x, max) in zip(addr, self._shape)]
-        if shape == [1] or shape == [1, 1]:
-            return [1]
-        else:
-            return [x for x in shape if x > 1] # remove empty dimensions
+        return partial_shape(addr, self._shape)
 
     def _homogeneous_array(self, addr):
         self.check_bounds(addr)
@@ -239,14 +258,7 @@ class larray(object):
             return numpy.ones(shape, type(self.base_value))
 
     def _full_address(self, addr):
-        if not isinstance(addr, tuple):
-            addr = (addr,)
-        if len(addr) < len(self.shape):
-            full_addr = [slice(None)] * len(self._shape)
-            for i, val in enumerate(addr):
-                full_addr[i] = val
-            addr = full_addr
-        return addr
+        return full_address(addr, self._shape)
 
     def _array_indices(self, addr):
         self.check_bounds(addr)
@@ -278,6 +290,12 @@ class larray(object):
 
     @requires_shape
     def __getitem__(self, addr):
+        """
+        Return one or more items from the array, as for NumPy arrays.
+
+        `addr` may be a single integer, a slice, a NumPy boolean array or a
+        NumPy integer array.
+        """
         return self._partially_evaluate(addr, simplify=False)
 
     def _partially_evaluate(self, addr, simplify=False):
