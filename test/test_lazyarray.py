@@ -448,3 +448,37 @@ def test_set_shape():
     assert_equal(m.shape, None)
     m.shape = (5,)
     assert_array_equal(m.evaluate(), numpy.array([42, 45, 48, 51, 54]))
+
+def test_call():
+    A = larray(numpy.array([1,2,3]), shape=(3,)) - 1
+    B = 0.5*larray(lambda i: 2*i, shape=(3,))
+    C = B(A)
+    assert_array_equal(C.evaluate(), numpy.array([0, 1, 2]))
+
+def test_call2():
+    positions = numpy.array(
+        [[ 0.,  2.,  4.,  6.,  8.],
+         [ 0.,  0.,  0.,  0.,  0.],
+         [ 0.,  0.,  0.,  0.,  0.]])
+    def position_generator(i):
+        return positions.T[i]
+    def distances(A, B):
+        d = A - B
+        d **= 2
+        d = numpy.sum(d, axis=-1)
+        numpy.sqrt(d, d)
+        return d
+    def distance_generator(f, g):
+        def distance_map(i, j):
+            return distances(f(i), g(j))
+        return distance_map
+    distance_map = larray(distance_generator(position_generator, position_generator),
+                          shape=(4,5))
+    f_delay = 1000*larray(lambda d: 0.1 * (1 + d), shape=(4,5))
+    assert_array_almost_equal(
+        f_delay(distance_map).evaluate(),
+        numpy.array([[100, 300, 500, 700, 900],
+                     [300, 100, 300, 500, 700],
+                     [500, 300, 100, 300, 500],
+                     [700, 500, 300, 100, 300]], dtype=float),
+        decimal=12)
