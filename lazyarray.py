@@ -415,6 +415,13 @@ class larray(object):
             raise ValueError("invalid base value for array")
         return self._apply_operations(x, simplify=simplify)
 
+    def __call__(self, value):
+        assert callable(self.base_value)
+        new_map = deepcopy(value)
+        new_map.operations.append((self.base_value, None))
+        new_map.operations.extend(self.operations)
+        return new_map
+
     __iadd__ = lazy_inplace_operation('add')
     __isub__ = lazy_inplace_operation('sub')
     __imul__ = lazy_inplace_operation('mul')
