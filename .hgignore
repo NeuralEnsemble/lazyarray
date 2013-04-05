@@ -4,3 +4,6 @@ doc/_build
 *.pyc
 dist
 MANIFEST
+build
+cover
+.coverage

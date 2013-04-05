@@ -312,6 +312,8 @@ class larray(object):
         elif callable(self.base_value):
             indices = self._array_indices(addr)
             base_val = self.base_value(*indices)
+            if isinstance(base_val, numpy.ndarray) and base_val.shape == (1,):
+                base_val = base_val[0]
         elif isinstance(self.base_value, VectorizedIterable):
             partial_shape = self._partial_shape(addr)
             if partial_shape:
@@ -319,10 +321,10 @@ class larray(object):
             else:
                 n = 0
             base_val = self.base_value.next(n) # note that the array contents will depend on the order of access to elements
-            if partial_shape and base_val.shape != partial_shape:
-                base_val = base_val.reshape(partial_shape)
             if n == 1:
                 base_val = base_val[0]
+            elif partial_shape and base_val.shape != partial_shape:
+                base_val = base_val.reshape(partial_shape)
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError("coming soon...")
         else:
@@ -415,12 +417,20 @@ class larray(object):
             raise ValueError("invalid base value for array")
         return self._apply_operations(x, simplify=simplify)
 
-    def __call__(self, value):
-        assert callable(self.base_value)
-        new_map = deepcopy(value)
-        new_map.operations.append((self.base_value, None))
-        new_map.operations.extend(self.operations)
-        return new_map
+    def __call__(self, arg):
+        if callable(self.base_value):
+            if callable(arg):
+                new_map = larray(arg)
+            elif isinstance(arg, lazyarray):
+                new_map = deepcopy(arg)
+            else:
+                raise Exception("Argument must be either callable or an larray.")
+            new_map.operations.append((self.base_value, None))
+            new_map.operations.extend(self.operations)
+            return new_map
+        else:
+            raise Exception("larray is not callable")
+
 
     __iadd__ = lazy_inplace_operation('add')
     __isub__ = lazy_inplace_operation('sub')
