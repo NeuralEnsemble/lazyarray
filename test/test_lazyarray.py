@@ -7,6 +7,7 @@ Copyright Andrew P. Davison, 2012
 from lazyarray import larray, VectorizedIterable, sqrt
 import numpy
 from nose.tools import assert_raises, assert_equal
+from nose import SkipTest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import operator
 from copy import deepcopy
@@ -301,6 +302,12 @@ def test_getitem__with_mask_from_constant_array():
     assert_array_equal(m[1, (0, 2)],
                        numpy.array([3, 3]))
 
+def test_getitem_with_numpy_integers_from_2D_constant_array():
+    if not hasattr(numpy, "int64"):
+        raise SkipTest("test requires a 64-bit system")
+    m = larray(3, shape=(4,3))
+    assert m[numpy.int64(0), numpy.int32(0)] == 3
+
 def test_getslice_from_constant_array():
     m = larray(3, shape=(4, 3))
     assert_array_equal(m[:2],
@@ -329,7 +336,7 @@ def test_getitem_from_vectorized_iterable():
     input = MockRNG(0, 1)
     m = larray(input, shape=(7,))
     m3 = m[3]
-    assert isinstance(m3, int)
+    assert isinstance(m3, (int, numpy.integer))
     assert_equal(m3, 0)
     assert_equal(m[0], 1)
 
