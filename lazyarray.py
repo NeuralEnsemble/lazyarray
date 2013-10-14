@@ -73,7 +73,7 @@ def partial_shape(addr, full_shape):
     Calculate the size of the sub-array represented by `addr`
     """
     def size(x, max):
-        if isinstance(x, (int, long)):
+        if isinstance(x, (int, long, numpy.integer)):
             return 1
         elif isinstance(x, slice):
             return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
@@ -82,6 +82,8 @@ def partial_shape(addr, full_shape):
                 return x.sum()
             else:
                 return len(x)
+        else:
+            raise TypeError("Unsupported index type %s" % type(x))
     addr = full_address(addr, full_shape)
     shape = [size(x, max) for (x, max) in zip(addr, full_shape)]
     if shape == [1] or shape == [1, 1]:
@@ -206,7 +208,15 @@ class larray(object):
                 obj.operations.append((deepcopy(f), deepcopy(arg)))
         return obj
 
+    def __repr__(self):
+        return "<larray: base_value=%r shape=%r dtype=%r, operations=%r>" % (self.base_value,
+                                                                            self.shape,
+                                                                            self.dtype,
+                                                                            self.operations)
+
     def _set_shape(self, value):
+        if hasattr(self.base_value, "shape") and self.base_value.shape != value:
+            raise ValueError("Lazy array has fixed shape %s, cannot be changed to %s" % (self.base_value.shape, value))
         self._shape = value
         for op in self.operations:
             if isinstance(op[1], larray):
@@ -238,8 +248,8 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        hom_base = isinstance(self.base_value, (int, long, float, bool)) or type(self.base_value) == self.dtype
-        hom_ops = all(isinstance(obj.base_value, (int, long, float, bool))
+        hom_base = isinstance(self.base_value, (int, long, numpy.integer, float, bool)) or type(self.base_value) == self.dtype
+        hom_ops = all(isinstance(obj.base_value, (int, long, numpy.integer, float, bool))
                       for obj in self.operations if  isinstance(obj, larray))
         return hom_base and hom_ops
 
@@ -263,7 +273,7 @@ class larray(object):
     def _array_indices(self, addr):
         self.check_bounds(addr)
         def axis_indices(x, max):
-            if isinstance(x, (int, long)):
+            if isinstance(x, (int, long, numpy.integer)):
                 return x
             elif isinstance(x, slice): # need to handle negative values in slice
                 return numpy.arange((x.start or 0),
@@ -275,6 +285,8 @@ class larray(object):
                     return numpy.arange(max)[x]
                 else:
                     return numpy.array(x)
+            else:
+                raise TypeError("Unsupported index type %s" % type(x))
         addr = self._full_address(addr)
         indices = [axis_indices(x, max) for (x, max) in zip(addr, self._shape)]
         if len(indices) == 1:
@@ -337,7 +349,7 @@ class larray(object):
         Check whether the given address is within the array bounds.
         """
         def check_axis(x, size):
-            if isinstance(x, (int, long)):
+            if isinstance(x, (int, long, numpy.integer)):
                 lower = upper = x
             elif isinstance(x, slice):
                 lower = x.start or 0
@@ -354,7 +366,7 @@ class larray(object):
                 else:
                     upper = max(x)
             else:
-                raise TypeError("Invalid array address: %s" % addr)
+                raise TypeError("Invalid array address: %s (element of type %s)" % (str(addr), type(x)))
             if (lower < -size) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
