@@ -421,6 +421,21 @@ def test_partially_evaluate_constant_array_with_all_boolean_indices_false():
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
     assert_equal(m[addr_bool].shape, (0,))
 
+def test_partially_evaluate_constant_array_with_only_one_boolean_indice_true():
+    m = larray(3, shape=(3,))
+    a = 3*numpy.ones((3,))
+    addr_bool = numpy.array([False, True, False])
+    assert_equal(a[addr_bool].shape, m[addr_bool].shape)
+    assert_equal(m[addr_bool].shape, (1,))
+    assert_equal(m[addr_bool][0], a[0])
+
+def test_partially_evaluate_constant_array_with_boolean_indice_as_random_valid_ndarray():
+    m = larray(3, shape=(3,))
+    a = 3*numpy.ones((3,))
+    addr_bool = numpy.ndarray(shape=(3,), dtype=bool)
+    assert_equal(a[addr_bool].shape, m[addr_bool].shape)
+    assert_equal(m[addr_bool][0], a[0])
+
 def test_partially_evaluate_constant_array_size_one_with_boolean_index_true():
     m = larray(3, shape=(1,))
     m1 = larray(3, shape=(1,1))
@@ -428,11 +443,11 @@ def test_partially_evaluate_constant_array_size_one_with_boolean_index_true():
     a1 = numpy.array([[3]])
     addr_bool = numpy.array([True])
     addr_bool1 = numpy.array([[True]])
-    assert_equal(m[addr_bool], 3)
+    assert_equal(m[addr_bool][0], a[0])
     assert_equal(m[addr_bool].shape, (1,))
     assert_equal(m[addr_bool], a[addr_bool])
     assert_equal(m[addr_bool].shape, m.shape)
-    assert_equal(m1[addr_bool1], 3)
+    assert_equal(m1[addr_bool1][0], a[0])
     assert_equal(m1[addr_bool1].shape, (1,))
     assert_equal(m1[addr_bool1].shape, a1[addr_bool1].shape)
     assert_equal(m1[addr_bool1].shape, m1.shape)
