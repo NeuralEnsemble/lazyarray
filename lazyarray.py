@@ -262,10 +262,7 @@ class larray(object):
     def _homogeneous_array(self, addr):
         self.check_bounds(addr)
         shape = self._partial_shape(addr)
-        if shape == [1]:
-            return 1
-        else:
-            return numpy.ones(shape, type(self.base_value))
+        return numpy.ones(shape, type(self.base_value))
 
     def _full_address(self, addr):
         return full_address(addr, self._shape)
