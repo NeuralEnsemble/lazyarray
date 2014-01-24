@@ -355,19 +355,23 @@ class larray(object):
                 lower = x.start or 0
                 upper = x.stop or size-1
             elif isinstance(x, collections.Sized):
-                if len(x) == 0:
-                    raise ValueError("Empty address component (address was %s)" % str(addr))
-                if hasattr(x, "min"):
-                    lower = x.min()
+                if hasattr(x, 'dtype') and x.dtype == bool:
+                    lower = 0
+                    upper = x.size-1
                 else:
-                    lower = min(x)
-                if hasattr(x, "max"):
-                    upper = x.max()
-                else:
-                    upper = max(x)
+                    if len(x) == 0:
+                        raise ValueError("Empty address component (address was %s)" % str(addr))
+                    if hasattr(x, "min"):
+                        lower = x.min()
+                    else:
+                        lower = min(x)
+                    if hasattr(x, "max"):
+                        upper = x.max()
+                    else:
+                        upper = max(x)
             else:
                 raise TypeError("Invalid array address: %s (element of type %s)" % (str(addr), type(x)))
-            if (lower < -size) or (upper >= size):
+            if (lower < 0) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
         for i, size in zip(full_addr, self._shape):
