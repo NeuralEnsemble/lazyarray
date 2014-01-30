@@ -338,7 +338,7 @@ def test_getitem_from_vectorized_iterable():
     m3 = m[3]
     assert isinstance(m3, (int, numpy.integer))
     assert_equal(m3, 0)
-    assert_equal(m[0], 1)
+    assert_equal(m[0], 1)  
 
 def test_getitem_with_slice_from_2D_functional_array():
     m = larray(lambda i,j: 2*i + j, shape=(6,5))
@@ -412,13 +412,16 @@ def test_partially_evaluate_constant_array_with_one_element():
     a1 = 3*numpy.ones((1,1))
     m2 = larray(3, shape=(1,1,1))
     a2 = 3*numpy.ones((1,1,1))
+    assert_equal(a[0], m[0])
     assert_equal(a.shape, m.shape)
     assert_equal(a[:].shape, m[:].shape)
     assert_equal(a,m.evaluate())
     assert_equal(a1.shape, m1.shape)
+    assert_equal(a1[0,:].shape, m1[0,:].shape)
     assert_equal(a1[:].shape, m1[:].shape)
     assert_equal(a1,m1.evaluate())
     assert_equal(a2.shape, m2.shape)
+    assert_equal(a2[:,0,:].shape, m2[:,0,:].shape)
     assert_equal(a2[:].shape, m2[:].shape)
     assert_equal(a2,m2.evaluate())
     
@@ -449,7 +452,7 @@ def test_partially_evaluate_constant_array_with_boolean_indice_as_random_valid_n
     a = 3*numpy.ones((3,))
     addr_bool = numpy.ndarray(shape=(3,), dtype=bool)
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
-    assert_equal(m[addr_bool][0], a[0])
+    assert_equal(m[addr_bool][0], a[addr_bool][0])
 
 def test_partially_evaluate_constant_array_size_one_with_boolean_index_true():
     m = larray(3, shape=(1,))
@@ -481,7 +484,6 @@ def test_partially_evaluate_constant_array_size_one_with_boolean_index_false():
     addr_bool2 = numpy.array([False])
     assert_equal(m[addr_bool].shape, a[addr_bool].shape)
     assert_equal(m1[addr_bool1].shape, a1[addr_bool1].shape)
-#    assert_equal(m1[addr_bool2].shape, a1[addr_bool2].shape)
     
 def test_partially_evaluate_constant_array_size_with_empty_boolean_indice():
     m = larray(3, shape=(1,))
