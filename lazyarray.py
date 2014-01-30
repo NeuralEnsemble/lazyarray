@@ -72,6 +72,8 @@ def partial_shape(addr, full_shape):
     """
     Calculate the size of the sub-array represented by `addr`
     """
+    def is_boolean_array(arr):
+        return isinstance(arr, collections.Sized) and hasattr(arr, 'dtype') and arr.dtype == bool
     def size(x, max):
         if isinstance(x, (int, long, numpy.integer)):
             return 1, 'int'
@@ -86,12 +88,10 @@ def partial_shape(addr, full_shape):
             raise TypeError("Unsupported index type %s" % type(x))
     def is_there_one_zero_dim(shape):
         return bool(shape.count(0))
-    def is_only_one_dims(shape, type_dim):
-        if type_dim.count('bool') > 0:
-            return (len(shape) == shape.count(1))
-        else:
-            return False
-    if isinstance(addr, collections.Sized) and hasattr(addr, 'dtype') and addr.dtype == bool:
+    def is_only_one_dims(shape):
+        return len(shape) == shape.count(1)
+        
+    if is_boolean_array(addr):
         shape = [(addr==True).sum()]
         type_dim = ['bool']
     else:
@@ -100,20 +100,18 @@ def partial_shape(addr, full_shape):
         
     if is_there_one_zero_dim(shape):
         return [0]
-    elif is_only_one_dims(shape, type_dim):
+    elif is_only_one_dims(shape) and (type_dim.count('bool') > 0):
+        return [1]
+    elif type_dim.count('slice') > 0:
+        new_shape=[]
+        for i, t in enumerate(type_dim):
+            if t == 'slice' or shape[i] > 1:
+                new_shape.append(shape[i])
+        return new_shape
+    elif is_only_one_dims(shape) and (type_dim.count('int') > 0):
         return [1]
     else:
-        if type_dim.count('slice') > 0:
-            new_shape=[]
-            for i, t in enumerate(type_dim):
-                if t == 'slice' or shape[i] > 1:
-                    shape[i]
-                    new_shape.append(shape[i])
-            return new_shape
-        elif type_dim.count('int') > 0 and len(shape) == shape.count(1):
-            return [1]
-        else:
-            return [x for x in shape if x > 1] # remove empty dimensions
+        return [x for x in shape if x > 1] # remove empty dimensions
 
 def reverse(func):
     """Given a function f(a, b), returns f(b, a)"""
@@ -368,6 +366,8 @@ class larray(object):
         """
         Check whether the given address is within the array bounds.
         """
+        def is_boolean_array(arr):
+            return hasattr(arr, 'dtype') and arr.dtype == bool
         def check_axis(x, size):
             if isinstance(x, (int, long, numpy.integer)):
                 lower = upper = x
@@ -375,7 +375,7 @@ class larray(object):
                 lower = x.start or 0
                 upper = x.stop or size-1
             elif isinstance(x, collections.Sized):
-                if hasattr(x, 'dtype') and x.dtype == bool:
+                if is_boolean_array(x):
                     lower = 0
                     upper = x.size-1
                 else:
@@ -394,7 +394,7 @@ class larray(object):
             if (lower < -size) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
-        if hasattr(full_addr[0], 'dtype') and full_addr[0].dtype == bool:
+        if is_boolean_array(full_addr[0]):
             if len(addr.shape) > len(self._shape):
                 raise IndexError("Too many indices for array")
             for xmax, size in zip(addr.shape, self._shape):
