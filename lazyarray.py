@@ -79,9 +79,9 @@ def partial_shape(addr, full_shape):
             return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1), 'slice'
         elif isinstance(x, collections.Sized):
             if hasattr(x, 'dtype') and x.dtype == bool:
-                return x.sum(), 'bool'
+                return (x==True).sum(), 'bool'
             else:
-                return len(x), 'bool'
+                return len(x), 'int'
         else:
             raise TypeError("Unsupported index type %s" % type(x))
     def is_there_one_zero_dim(shape):
@@ -92,7 +92,7 @@ def partial_shape(addr, full_shape):
         else:
             return False
     if isinstance(addr, collections.Sized) and hasattr(addr, 'dtype') and addr.dtype == bool:
-        shape = [addr.sum()]
+        shape = [(addr==True).sum()]
         type_dim = ['bool']
     else:
         addr = full_address(addr, full_shape)
@@ -106,10 +106,12 @@ def partial_shape(addr, full_shape):
         if type_dim.count('slice') > 0:
             new_shape=[]
             for i, t in enumerate(type_dim):
-                if t == 'slice':
+                if t == 'slice' or shape[i] > 1:
                     shape[i]
                     new_shape.append(shape[i])
             return new_shape
+        elif type_dim.count('int') > 0 and len(shape) == shape.count(1):
+            return [1]
         else:
             return [x for x in shape if x > 1] # remove empty dimensions
 
