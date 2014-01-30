@@ -436,14 +436,12 @@ def test_partially_evaluate_constant_array_with_all_boolean_indices_false():
     a = 3*numpy.ones((3,))
     addr_bool = numpy.array([False, False, False])
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
-    assert_equal(m[addr_bool].shape, (0,))
 
 def test_partially_evaluate_constant_array_with_only_one_boolean_indice_true():
     m = larray(3, shape=(3,))
     a = 3*numpy.ones((3,))
     addr_bool = numpy.array([False, True, False])
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
-    assert_equal(m[addr_bool].shape, (1,))
     assert_equal(m[addr_bool][0], a[0])
 
 def test_partially_evaluate_constant_array_with_boolean_indice_as_random_valid_ndarray():
@@ -461,24 +459,29 @@ def test_partially_evaluate_constant_array_size_one_with_boolean_index_true():
     a1 = 3*numpy.ones((1,1))
     addr_bool1 = numpy.array([[True]],ndmin=2)
     assert_equal(m[addr_bool][0], a[0])
-    assert_equal(m[addr_bool].shape, (1,))
     assert_equal(m[addr_bool], a[addr_bool])
-    assert_equal(m[addr_bool].shape, m.shape)
-    assert_equal(m1[addr_bool1][0], a[0])
-    assert_equal(m1[addr_bool1].shape, (1,))
+    assert_equal(m[addr_bool].shape, a[addr_bool].shape)
+    assert_equal(m1[addr_bool1][0], a1[addr_bool1][0])
     assert_equal(m1[addr_bool1].shape, a1[addr_bool1].shape)
+    
+def test_partially_evaluate_constant_array_size_two_with_boolean_index_true():
+    m2 = larray(3, shape=(1,2))
+    a2 = 3*numpy.ones((1,2))
+    addr_bool2 = numpy.ones((1,2), dtype=bool)
+    assert_equal(m2[addr_bool2][0], a2[addr_bool2][0])
+    assert_equal(m2[addr_bool2].shape, a2[addr_bool2].shape)
 
 def test_partially_evaluate_constant_array_size_one_with_boolean_index_false():
     m = larray(3, shape=(1,))
     m1 = larray(3, shape=(1,1))
     a = numpy.array([3])
-    a1 = numpy.array([[3]])
+    a1 = numpy.array([[3]],ndmin=2)
     addr_bool = numpy.array([False])
-    addr_bool1 = numpy.array([[False]])
+    addr_bool1 = numpy.array([[False]],ndmin=2)
+    addr_bool2 = numpy.array([False])
     assert_equal(m[addr_bool].shape, a[addr_bool].shape)
-    assert_equal(m[addr_bool].shape, (0,))
     assert_equal(m1[addr_bool1].shape, a1[addr_bool1].shape)
-    assert_equal(m1[addr_bool1].shape, (0,))
+#    assert_equal(m1[addr_bool2].shape, a1[addr_bool2].shape)
     
 def test_partially_evaluate_constant_array_size_with_empty_boolean_indice():
     m = larray(3, shape=(1,))
