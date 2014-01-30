@@ -74,23 +74,44 @@ def partial_shape(addr, full_shape):
     """
     def size(x, max):
         if isinstance(x, (int, long, numpy.integer)):
-            return 1
+            return 1, 'int'
         elif isinstance(x, slice):
-            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
+            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1), 'slice'
         elif isinstance(x, collections.Sized):
             if hasattr(x, 'dtype') and x.dtype == bool:
-                return x.sum()
+                return x.sum(), 'bool'
             else:
-                return len(x)
+                return len(x), 'bool'
         else:
             raise TypeError("Unsupported index type %s" % type(x))
-    addr = full_address(addr, full_shape)
-    shape = [size(x, max) for (x, max) in zip(addr, full_shape)]
-    if shape == [1] or shape == [1, 1]:
+    def is_there_one_zero_dim(shape):
+        return bool(shape.count(0))
+    def is_only_one_dims(shape, type_dim):
+        if type_dim.count('bool') > 0:
+            return (len(shape) == shape.count(1))
+        else:
+            return False
+    if isinstance(addr, collections.Sized) and hasattr(addr, 'dtype') and addr.dtype == bool:
+        shape = [addr.sum()]
+        type_dim = ['bool']
+    else:
+        addr = full_address(addr, full_shape)
+        shape, type_dim = zip(*[size(x, max) for (x, max) in zip(addr, full_shape)])
+        
+    if is_there_one_zero_dim(shape):
+        return [0]
+    elif is_only_one_dims(shape, type_dim):
         return [1]
     else:
-        return [x for x in shape if x > 1] # remove empty dimensions
-
+        if type_dim.count('slice') > 0:
+            new_shape=[]
+            for i, t in enumerate(type_dim):
+                if t == 'slice':
+                    shape[i]
+                    new_shape.append(shape[i])
+            return new_shape
+        else:
+            return [x for x in shape if x > 1] # remove empty dimensions
 
 def reverse(func):
     """Given a function f(a, b), returns f(b, a)"""
@@ -368,11 +389,20 @@ class larray(object):
                         upper = max(x)
             else:
                 raise TypeError("Invalid array address: %s (element of type %s)" % (str(addr), type(x)))
-            if (lower < 0) or (upper >= size):
+            if (lower < -size) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
-        for i, size in zip(full_addr, self._shape):
-            check_axis(i, size)
+        if hasattr(full_addr[0], 'dtype') and full_addr[0].dtype == bool:
+            if len(addr.shape) > len(self._shape):
+                raise IndexError("Too many indices for array")
+            for xmax, size in zip(addr.shape, self._shape):
+                lower = 0            
+                upper = xmax-1
+                if (lower < 0) or (upper >= size):
+                    raise IndexError("index %s out of bounds for axis %s of size %s" % (x.size, i, size) )
+        else:
+            for i, size in zip(full_addr, self._shape):
+                check_axis(i, size)
 
     def apply(self, f):
         """
