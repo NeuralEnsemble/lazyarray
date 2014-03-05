@@ -43,9 +43,7 @@ def check_shape(meth):
     def wrapped_meth(self, val):
         if isinstance(val, (larray, numpy.ndarray)):
             if val.shape != self._shape:
-                raise ValueError(
-                    "shape mismatch: " +
-                    " objects cannot be broadcast to a single shape")
+                raise ValueError("shape mismatch: objects cannot be broadcast to a single shape")
         return meth(self, val)
     return wrapped_meth
 
@@ -75,45 +73,37 @@ def partial_shape(addr, full_shape):
     Calculate the size of the sub-array represented by `addr`
     """
     def is_boolean_array(arr):
-        if isinstance(arr, collections.Sized):
-            return hasattr(arr, 'dtype') and arr.dtype == bool
-        else:
-            return False
-
+        return isinstance(arr, collections.Sized) and hasattr(arr, 'dtype') and arr.dtype == bool
     def size(x, max):
         if isinstance(x, (int, long, numpy.integer)):
             return 1, 'int'
         elif isinstance(x, slice):
-            y = 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
-            return y, 'slice'
+            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1), 'slice'
         elif isinstance(x, collections.Sized):
             if hasattr(x, 'dtype') and x.dtype == bool:
-                return (x == True).sum(), 'bool'
+                return (x==True).sum(), 'bool'
             else:
                 return len(x), 'int'
         else:
             raise TypeError("Unsupported index type %s" % type(x))
-
     def is_there_one_zero_dim(shape):
         return bool(shape.count(0))
-
     def is_only_one_dims(shape):
         return len(shape) == shape.count(1)
-
+        
     if is_boolean_array(addr):
-        shape = [(addr == True).sum()]
+        shape = [(addr==True).sum()]
         type_dim = ['bool']
     else:
         addr = full_address(addr, full_shape)
-        shape, type_dim = zip(*[size(x, max)
-                              for (x, max) in zip(addr, full_shape)])
-
+        shape, type_dim = zip(*[size(x, max) for (x, max) in zip(addr, full_shape)])
+        
     if is_there_one_zero_dim(shape):
         return [0]
     elif is_only_one_dims(shape) and (type_dim.count('bool') > 0):
         return [1]
     elif type_dim.count('slice') > 0:
-        new_shape = []
+        new_shape=[]
         for i, t in enumerate(type_dim):
             if t == 'slice' or shape[i] > 1:
                 new_shape.append(shape[i])
@@ -121,8 +111,7 @@ def partial_shape(addr, full_shape):
     elif is_only_one_dims(shape) and (type_dim.count('int') > 0):
         return [1]
     else:
-        return [x for x in shape if x > 1]  # remove empty dimensions
-
+        return [x for x in shape if x > 1] # remove empty dimensions
 
 def reverse(func):
     """Given a function f(a, b), returns f(b, a)"""
@@ -163,7 +152,6 @@ def lazy_unary_operation(name):
 
 
 class larray(object):
-
     """
     Optimises storage of and operations on arrays in various ways:
       - stores only a single value if all the values in the array are the same;
@@ -200,23 +188,19 @@ class larray(object):
             self._shape = shape or value.shape
             self.base_value = value.base_value
             self.dtype = dtype or value.dtype
-            self.operations = value.operations  # should deepcopy?
-        # False for numbers, generators, functions, iterators
-        elif isinstance(value, collections.Sized):
+            self.operations = value.operations # should deepcopy?
+        elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
             #assert numpy.isreal(value).all()
             if not isinstance(value, numpy.ndarray):
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
-                # or could convert value to the provided dtype
-                assert value.dtype == dtype
+                assert value.dtype == dtype # or could convert value to the provided dtype
             if shape and value.shape != shape:
-                raise ValueError("Array has shape %s, value has shape %s" %
-                                 (shape, value.shape))
+                raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             self._shape = value.shape
             self.base_value = value
         else:
-            # also True for callables, generators, iterators
-            assert numpy.isreal(value)
+            assert numpy.isreal(value)  # also True for callables, generators, iterators
             self._shape = shape
             if dtype is None:
                 self.base_value = value
@@ -227,20 +211,14 @@ class larray(object):
                     self.base_value = value
 
     def __eq__(self, other):
-        return self.base_value == other.base_value \
-            and self.operations == other.operations \
-            and self._shape == other.shape
+        return self.base_value == other.base_value and self.operations == other.operations and self._shape == other.shape
 
     def __deepcopy__(self, memo):
         obj = type(self).__new__(type(self))
         try:
             obj.base_value = deepcopy(self.base_value)
-        # base_value cannot be copied, e.g. is a generator (but see
-        # generator_tools from PyPI)
-        except TypeError:
-            # so here we create a reference rather than deepcopying - could
-            # cause problems
-            obj.base_value = self.base_value
+        except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
+            obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
         obj._shape = self._shape
         obj.dtype = self.dtype
         obj.operations = []
@@ -252,18 +230,14 @@ class larray(object):
         return obj
 
     def __repr__(self):
-        return "<larray: base_value=%r shape=%r dtype=%r, operations=%r>" \
-            % (self.base_value,
-               self.shape,
-               self.dtype,
-               self.operations)
+        return "<larray: base_value=%r shape=%r dtype=%r, operations=%r>" % (self.base_value,
+                                                                            self.shape,
+                                                                            self.dtype,
+                                                                            self.operations)
 
     def _set_shape(self, value):
-        base_value = self.base_value
-        if hasattr(base_value, "shape") and base_value.shape != value:
-            raise ValueError(
-                "Lazy array has fixed shape %s, cannot be changed to %s" %
-                (base_value.shape, value))
+        if hasattr(self.base_value, "shape") and self.base_value.shape != value:
+            raise ValueError("Lazy array has fixed shape %s, cannot be changed to %s" % (self.base_value.shape, value))
         self._shape = value
         for op in self.operations:
             if isinstance(op[1], larray):
@@ -295,15 +269,9 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        hom_base = \
-            isinstance(self.base_value,
-                       (int, long, numpy.integer, float, bool)
-                       )\
-            or type(self.base_value) == self.dtype
-        hom_ops = all(
-            isinstance(obj.base_value, (int, long, numpy.integer, float, bool))
-            for obj in self.operations if isinstance(obj, larray)
-            )
+        hom_base = isinstance(self.base_value, (int, long, numpy.integer, float, bool)) or type(self.base_value) == self.dtype
+        hom_ops = all(isinstance(obj.base_value, (int, long, numpy.integer, float, bool))
+                      for obj in self.operations if  isinstance(obj, larray))
         return hom_base and hom_ops
 
     def _partial_shape(self, addr):
@@ -322,12 +290,10 @@ class larray(object):
 
     def _array_indices(self, addr):
         self.check_bounds(addr)
-
         def axis_indices(x, max):
             if isinstance(x, (int, long, numpy.integer)):
                 return x
-            # need to handle negative values in slice
-            elif isinstance(x, slice):
+            elif isinstance(x, slice): # need to handle negative values in slice
                 return numpy.arange((x.start or 0),
                                     (x.stop or max),
                                     (x.step or 1),
@@ -347,8 +313,7 @@ class larray(object):
             if isinstance(indices[0], collections.Sized):
                 if isinstance(indices[1], collections.Sized):
                     mesh_xy = numpy.meshgrid(*indices)
-                    # meshgrid works on (x,y), not (i,j)
-                    return (mesh_xy[0].T, mesh_xy[1].T)
+                    return (mesh_xy[0].T, mesh_xy[1].T) # meshgrid works on (x,y), not (i,j)
             return indices
         else:
             raise NotImplementedError("Only 1D and 2D arrays supported")
@@ -385,9 +350,7 @@ class larray(object):
                 n = reduce(operator.mul, partial_shape)
             else:
                 n = 0
-            # note that the array contents will depend on the order of access
-            # to elements
-            base_val = self.base_value.next(n)
+            base_val = self.base_value.next(n) # note that the array contents will depend on the order of access to elements
             if n == 1:
                 base_val = base_val[0]
             elif partial_shape and base_val.shape != partial_shape:
@@ -405,22 +368,19 @@ class larray(object):
         """
         def is_boolean_array(arr):
             return hasattr(arr, 'dtype') and arr.dtype == bool
-
         def check_axis(x, size):
             if isinstance(x, (int, long, numpy.integer)):
                 lower = upper = x
             elif isinstance(x, slice):
                 lower = x.start or 0
-                upper = x.stop or size - 1
+                upper = x.stop or size-1
             elif isinstance(x, collections.Sized):
                 if is_boolean_array(x):
                     lower = 0
-                    upper = x.size - 1
+                    upper = x.size-1
                 else:
                     if len(x) == 0:
-                        raise ValueError(
-                            "Empty address component (address was %s)" %
-                            str(addr))
+                        raise ValueError("Empty address component (address was %s)" % str(addr))
                     if hasattr(x, "min"):
                         lower = x.min()
                     else:
@@ -430,9 +390,7 @@ class larray(object):
                     else:
                         upper = max(x)
             else:
-                raise TypeError(
-                    "Invalid array address: %s (element of type %s)" %
-                    (str(addr), type(x)))
+                raise TypeError("Invalid array address: %s (element of type %s)" % (str(addr), type(x)))
             if (lower < -size) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
@@ -440,12 +398,10 @@ class larray(object):
             if len(addr.shape) > len(self._shape):
                 raise IndexError("Too many indices for array")
             for xmax, size in zip(addr.shape, self._shape):
-                lower = 0
-                upper = xmax - 1
+                lower = 0            
+                upper = xmax-1
                 if (lower < 0) or (upper >= size):
-                    raise IndexError(
-                        "index %s out of bounds for axis %s of size %s" %
-                        (x.size, i, size))
+                    raise IndexError("index %s out of bounds for axis %s of size %s" % (x.size, i, size) )
         else:
             for i, size in zip(full_addr, self._shape):
                 check_axis(i, size)
@@ -484,8 +440,7 @@ class larray(object):
         If the array is homogeneous and ``simplify`` is ``True``, return a
         single numerical value.
         """
-        # need to catch the situation where a generator-based larray is
-        # evaluated a second time
+        # need to catch the situation where a generator-based larray is evaluated a second time
         if self.is_homogeneous:
             if simplify:
                 x = self.base_value
@@ -494,15 +449,13 @@ class larray(object):
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
-            x = numpy.array(numpy.fromfunction(self.base_value,
-                            shape=self._shape, dtype=int), dtype=self.dtype)
+            x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape, dtype=int), dtype=self.dtype)
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
         elif isinstance(self.base_value, collections.Iterator):
-            x = numpy.fromiter(self.base_value,
-                               dtype=self.dtype or float, count=self.size)
+            x = numpy.fromiter(self.base_value, dtype=self.dtype or float, count=self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
         else:
@@ -516,13 +469,13 @@ class larray(object):
             elif isinstance(arg, lazyarray):
                 new_map = deepcopy(arg)
             else:
-                raise Exception(
-                    "Argument must be either callable or an larray.")
+                raise Exception("Argument must be either callable or an larray.")
             new_map.operations.append((self.base_value, None))
             new_map.operations.extend(self.operations)
             return new_map
         else:
             raise Exception("larray is not callable")
+
 
     __iadd__ = lazy_inplace_operation('add')
     __isub__ = lazy_inplace_operation('sub')
@@ -530,26 +483,26 @@ class larray(object):
     __idiv__ = lazy_inplace_operation('div')
     __ipow__ = lazy_inplace_operation('pow')
 
-    __add__ = lazy_operation('add')
+    __add__  = lazy_operation('add')
     __radd__ = __add__
-    __sub__ = lazy_operation('sub')
+    __sub__  = lazy_operation('sub')
     __rsub__ = lazy_operation('sub', reversed=True)
-    __mul__ = lazy_operation('mul')
+    __mul__  = lazy_operation('mul')
     __rmul__ = __mul__
-    __div__ = lazy_operation('div')
+    __div__  = lazy_operation('div')
     __rdiv__ = lazy_operation('div', reversed=True)
     __truediv__ = lazy_operation('truediv')
     __rtruediv__ = lazy_operation('truediv', reversed=True)
-    __pow__ = lazy_operation('pow')
+    __pow__  = lazy_operation('pow')
 
-    __lt__ = lazy_operation('lt')
-    __gt__ = lazy_operation('gt')
-    __le__ = lazy_operation('le')
-    __ge__ = lazy_operation('ge')
+    __lt__   = lazy_operation('lt')
+    __gt__   = lazy_operation('gt')
+    __le__   = lazy_operation('le')
+    __ge__   = lazy_operation('ge')
 
-    __neg__ = lazy_unary_operation('neg')
-    __pos__ = lazy_unary_operation('pos')
-    __abs__ = lazy_unary_operation('abs')
+    __neg__  = lazy_unary_operation('neg')
+    __pos__  = lazy_unary_operation('pos')
+    __abs__  = lazy_unary_operation('abs')
 
 
 def _build_ufunc(func):
@@ -565,7 +518,6 @@ def _build_ufunc(func):
 
 
 class VectorizedIterable(object):
-
     """
     Base class for any class which has a method `next(n)`, i.e., where you
     can choose how many values to return rather than just returning one at a
