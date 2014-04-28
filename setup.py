@@ -26,4 +26,3 @@ setup(
         'Topic :: Scientific/Engineering',
     ]
 )
-
