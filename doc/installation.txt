@@ -6,7 +6,7 @@ Dependencies
 ============
   
     * Python >= 2.6
-    * numpy_ >= 1.1 (or >= 1.5 for Python 3)
+    * numpy_ >= 1.3 (or >= 1.5 for Python 3)
     
 
 Installing from the Python Package Index
@@ -21,7 +21,7 @@ to have administrator privileges on the machine you are installing on).
     
 To download and install manually, download:
 
-    http://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.2.3.tar.gz#md5=06b755b5e19481d9007fcbd0117c1de6
+    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.2.3.tar.gz#md5=1ab17810c68fb59c5d4f7183e7b219ee
 
 Then::
 

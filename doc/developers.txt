@@ -23,5 +23,6 @@ Making a release
 * Update changelog.txt
 * Run all the tests with both Python 2 and Python 3
 * python setup.py sdist upload
-* rebuild the documentation at http://lazyarray.readthedocs.org/
-* commit the changes, tag with release number, push to BitBucket
+* Update the download link in doc/installation.txt
+* Commit the changes, tag with release number, push to BitBucket
+* Rebuild the documentation at http://lazyarray.readthedocs.org/

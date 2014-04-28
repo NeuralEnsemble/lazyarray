@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='lazyarray',
-    version='0.2.3dev',
+    version='0.2.3',
     py_modules=['lazyarray'],
     license='Modified BSD',
     author="Andrew P. Davison",
@@ -16,7 +16,7 @@ setup(
         "numpy >= 1.3",
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
