@@ -14,3 +14,26 @@ Release 0.2.0
 * Added support for 'vectorized iterables', i.e. objects with a `next(n)` method so that you can return multiple values at once.
 * Fixed some bugs when creating a lazy array from an existing lazy array.
 * Added `dtype` attribute to `larray` class.
+
+
+Release 0.2.1
+=============
+
+* Previous release didn't work with Python 3.
+
+
+Release 0.2.2
+=============
+
+* Fixed behaviour of larray(VectorizedIterable) to match that of numpy array when indexing a single item.
+* Pulled out `partial_shape()` and `full_address()` methods of `larray` as standalone functions.
+* Better support for lists as masks.
+* `larray`s are now callable, provided their `base_value` is callable and the argument is another `larray`.
+
+
+Release 0.2.3
+=============
+
+* Support `numpy.int64` as indices.
+* Better support for boolean indices.
+* Handle the case of constant `larray`s of size 1.
