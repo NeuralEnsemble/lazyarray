@@ -1,8 +1,9 @@
+# encoding: utf-8
 """
 lazyarray is a Python package that provides a lazily-evaluated numerical array
 class, ``larray``, based on and compatible with NumPy arrays.
 
-Copyright Andrew P. Davison, 2012
+Copyright Andrew P. Davison, Joël Chavas 2012-2014
 """
 from __future__ import division
 import numpy
@@ -12,7 +13,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.3dev"
+__version__ = "0.2.3"
 
 # stuff for Python 3 compatibility
 try:
