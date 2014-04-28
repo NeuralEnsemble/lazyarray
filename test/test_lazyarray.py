@@ -450,7 +450,10 @@ def test_partially_evaluate_constant_array_with_only_one_boolean_indice_true():
 def test_partially_evaluate_constant_array_with_boolean_indice_as_random_valid_ndarray():
     m = larray(3, shape=(3,))
     a = 3*numpy.ones((3,))
-    addr_bool = numpy.ndarray(shape=(3,), dtype=bool)
+    addr_bool = numpy.random.rand(3) > 0.5
+    while not addr_bool.any():
+        # random array, but not [False, False, False]
+        addr_bool = numpy.random.rand(3) > 0.5
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
     assert_equal(m[addr_bool][0], a[addr_bool][0])
 
