@@ -3,7 +3,7 @@
 lazyarray is a Python package that provides a lazily-evaluated numerical array
 class, ``larray``, based on and compatible with NumPy arrays.
 
-Copyright Andrew P. Davison, Joël Chavas 2012-2014
+Copyright Andrew P. Davison and Joël Chavas 2012-2014
 """
 from __future__ import division
 import numpy
@@ -291,7 +291,10 @@ class larray(object):
                 raise TypeError("Unsupported index type %s" % type(x))
         addr = self._full_address(addr)
         if isinstance(addr, numpy.ndarray) and addr.dtype == bool:
-            raise NotImplementedError()
+            if addr.ndim == 1:
+                return (numpy.arange(self._shape[0])[addr],)
+            else:
+                raise NotImplementedError()
         elif all(isinstance(x, collections.Sized) for x in addr):
             indices = [numpy.array(x) for x in addr]
             return indices
