@@ -13,7 +13,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 # stuff for Python 3 compatibility
 try:
@@ -59,13 +59,14 @@ def requires_shape(meth):
 
 
 def full_address(addr, full_shape):
-    if not isinstance(addr, tuple):
-        addr = (addr,)
-    if len(addr) < len(full_shape):
-        full_addr = [slice(None)] * len(full_shape)
-        for i, val in enumerate(addr):
-            full_addr[i] = val
-        addr = full_addr
+    if not (isinstance(addr, numpy.ndarray) and addr.ndim == len(full_shape)):
+        if not isinstance(addr, tuple):
+            addr = (addr,)
+        if len(addr) < len(full_shape):
+            full_addr = [slice(None)] * len(full_shape)
+            for i, val in enumerate(addr):
+                full_addr[i] = val
+            addr = full_addr
     return addr
 
 
@@ -73,49 +74,27 @@ def partial_shape(addr, full_shape):
     """
     Calculate the size of the sub-array represented by `addr`
     """
-    def is_boolean_array(arr):
-        return isinstance(arr, collections.Sized) and hasattr(arr, 'dtype') and arr.dtype == bool
-
     def size(x, max):
         if isinstance(x, (int, long, numpy.integer)):
-            return 1, 'int'
+            return None
         elif isinstance(x, slice):
-            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1), 'slice'
+            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
         elif isinstance(x, collections.Sized):
             if hasattr(x, 'dtype') and x.dtype == bool:
-                return (x == True).sum(), 'bool'
+                return x.sum()
             else:
-                return len(x), 'int'
+                return len(x)
         else:
             raise TypeError("Unsupported index type %s" % type(x))
 
-    def is_there_one_zero_dim(shape):
-        return bool(shape.count(0))
-
-    def is_only_one_dims(shape):
-        return len(shape) == shape.count(1)
-
-    if is_boolean_array(addr):
-        shape = [(addr == True).sum()]
-        type_dim = ['bool']
+    addr = full_address(addr, full_shape)
+    if isinstance(addr, numpy.ndarray) and addr.dtype == bool:
+        return (addr.sum(),)
+    elif all(isinstance(x, collections.Sized) for x in addr):
+        return (len(addr[0]),)
     else:
-        addr = full_address(addr, full_shape)
-        shape, type_dim = zip(*[size(x, max) for (x, max) in zip(addr, full_shape)])
-
-    if is_there_one_zero_dim(shape):
-        return [0]
-    elif is_only_one_dims(shape) and (type_dim.count('bool') > 0):
-        return [1]
-    elif type_dim.count('slice') > 0:
-        new_shape = []
-        for i, t in enumerate(type_dim):
-            if t == 'slice' or shape[i] > 1:
-                new_shape.append(shape[i])
-        return new_shape
-    elif is_only_one_dims(shape) and (type_dim.count('int') > 0):
-        return [1]
-    else:
-        return [x for x in shape if x > 1]  # remove empty dimensions
+        shape = [size(x, max) for (x, max) in zip(addr, full_shape)]
+        return tuple([x for x in shape if x is not None])  # remove empty dimensions
 
 
 def reverse(func):
@@ -195,7 +174,6 @@ class larray(object):
             self.dtype = dtype or value.dtype
             self.operations = value.operations  # should deepcopy?
         elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
-            #assert numpy.isreal(value).all()
             if not isinstance(value, numpy.ndarray):
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
@@ -312,17 +290,23 @@ class larray(object):
             else:
                 raise TypeError("Unsupported index type %s" % type(x))
         addr = self._full_address(addr)
-        indices = [axis_indices(x, max) for (x, max) in zip(addr, self._shape)]
-        if len(indices) == 1:
-            return indices
-        elif len(indices) == 2:
-            if isinstance(indices[0], collections.Sized):
-                if isinstance(indices[1], collections.Sized):
-                    mesh_xy = numpy.meshgrid(*indices)
-                    return (mesh_xy[0].T, mesh_xy[1].T)  # meshgrid works on (x,y), not (i,j)
+        if isinstance(addr, numpy.ndarray) and addr.dtype == bool:
+            raise NotImplementedError()
+        elif all(isinstance(x, collections.Sized) for x in addr):
+            indices = [numpy.array(x) for x in addr]
             return indices
         else:
-            raise NotImplementedError("Only 1D and 2D arrays supported")
+            indices = [axis_indices(x, max) for (x, max) in zip(addr, self._shape)]
+            if len(indices) == 1:
+                return indices
+            elif len(indices) == 2:
+                if isinstance(indices[0], collections.Sized):
+                    if isinstance(indices[1], collections.Sized):
+                        mesh_xy = numpy.meshgrid(*indices)
+                        return (mesh_xy[0].T, mesh_xy[1].T)  # meshgrid works on (x,y), not (i,j)
+                return indices
+            else:
+                raise NotImplementedError("Only 1D and 2D arrays supported")
 
     @requires_shape
     def __getitem__(self, addr):
@@ -355,7 +339,7 @@ class larray(object):
             if partial_shape:
                 n = reduce(operator.mul, partial_shape)
             else:
-                n = 0
+                n = 1
             base_val = self.base_value.next(n)  # note that the array contents will depend on the order of access to elements
             if n == 1:
                 base_val = base_val[0]
@@ -401,14 +385,13 @@ class larray(object):
             if (lower < -size) or (upper >= size):
                 raise IndexError("Index out of bounds")
         full_addr = self._full_address(addr)
-        if is_boolean_array(full_addr[0]):
+        if isinstance(addr, numpy.ndarray) and addr.dtype == bool:
             if len(addr.shape) > len(self._shape):
                 raise IndexError("Too many indices for array")
             for xmax, size in zip(addr.shape, self._shape):
-                lower = 0
                 upper = xmax - 1
-                if (lower < 0) or (upper >= size):
-                    raise IndexError("index %s out of bounds for axis %s of size %s" % (x.size, i, size))
+                if upper >= size:
+                    raise IndexError("Index out of bounds")
         else:
             for i, size in zip(full_addr, self._shape):
                 check_axis(i, size)

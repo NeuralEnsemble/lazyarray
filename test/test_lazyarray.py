@@ -4,7 +4,7 @@ Unit tests for ``larray`` class
 Copyright Andrew P. Davison, 2012
 """
 
-from lazyarray import larray, VectorizedIterable, sqrt
+from lazyarray import larray, VectorizedIterable, sqrt, partial_shape
 import numpy
 from nose.tools import assert_raises, assert_equal
 from nose import SkipTest
@@ -401,11 +401,12 @@ def test_getitem_with_slice_from_2D_functional_array_2():
 
 
 def test_getitem_with_mask_from_2D_functional_array():
-    m = larray(lambda i, j: 2 * i + j, shape=(6, 5))
-    assert_array_equal(m[[2, 3, 4], [3, 4]],
-                       numpy.array([[7, 8],
-                                    [9, 10],
-                                    [11, 12]]))
+    a = numpy.arange(30).reshape((6, 5))
+    m = larray(lambda i, j: 5 * i + j, shape=(6, 5))
+    assert_array_equal(a[[2, 3], [3, 4]],
+                       numpy.array([13, 19]))
+    assert_array_equal(m[[2, 3], [3, 4]],
+                       numpy.array([13, 19]))
 
 
 def test_getitem_with_mask_from_1D_functional_array():
@@ -551,7 +552,7 @@ def test_partially_evaluate_constant_array_size_one_with_boolean_index_false():
     assert_equal(m1[addr_bool1].shape, a1[addr_bool1].shape)
 
 
-def test_partially_evaluate_constant_array_size_with_empty_boolean_indice():
+def test_partially_evaluate_constant_array_size_with_empty_boolean_index():
     m = larray(3, shape=(1,))
     a = numpy.array([3])
     addr_bool = numpy.array([], dtype='bool')
@@ -644,3 +645,49 @@ def test_call2():
                      [500, 300, 100, 300, 500],
                      [700, 500, 300, 100, 300]], dtype=float),
         decimal=12)
+
+
+def test__issue4():
+    m = larray(numpy.arange(12).reshape((4, 3)))
+    mask1 = (slice(None), True)
+    mask2 = (slice(None), numpy.array([True]))
+    assert_equal(m[mask1].shape, partial_shape(mask1, m.shape), (4,))
+    assert_equal(m[mask2].shape, partial_shape(mask2, m.shape), (4, 1))
+
+
+def test__issue3():
+    a = numpy.arange(12).reshape((4, 3))
+    b = larray(a)
+    c = larray(lambda i, j: 3*i + j, shape=(4, 3))
+    assert_array_equal(a[(1, 3), :][:, (0, 2)], b[(1, 3), :][:, (0, 2)])
+    assert_array_equal(b[(1, 3), :][:, (0, 2)], c[(1, 3), :][:, (0, 2)])
+    assert_array_equal(a[(1, 3), (0, 2)], b[(1, 3), (0, 2)])
+    assert_array_equal(b[(1, 3), (0, 2)], c[(1, 3), (0, 2)])
+
+
+def test_partial_shape():
+    a = numpy.arange(12).reshape((4, 3))
+    test_cases = [
+        (slice(None), (4, 3)),
+        ((slice(None), slice(None)), (4, 3)),
+        (slice(1, None, 2), (2, 3)),
+        (1, (3,)),
+        ((1, slice(None)), (3,)),
+        ([0, 2, 3], (3, 3)),
+        (numpy.array([0, 2, 3]), (3, 3)),
+        ((numpy.array([0, 2, 3]), slice(None)), (3, 3)),
+        (numpy.array([True, False, True, True]), (3, 3)),
+        (numpy.array([True, False]), (1, 3)),
+        (numpy.array([[True, False, False], [False, False, False], [True, True, False], [False, True, False]]), (4,)),
+        (numpy.array([[True, False, False], [False, False, False], [True, True, False]]), (3,)),
+        ((3, 1), tuple()),
+        ((slice(None), 1), (4,)),
+        ((slice(None), slice(1, None, 3)), (4, 1)),
+        ((numpy.array([0, 3]), 2), (2,)),
+        ((numpy.array([0, 3]), numpy.array([1, 2])), (2,)),
+        ((slice(None), numpy.array([2])), (4, 1)),
+        (((1, 3), (0, 2)), (2,)),
+        (numpy.array([], bool), (0, 3)),
+    ]
+    for mask, expected_shape in test_cases:
+        assert_equal(partial_shape(mask, a.shape), a[mask].shape, expected_shape)
