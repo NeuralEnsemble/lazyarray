@@ -1,7 +1,8 @@
+# encoding: utf-8
 """
 Unit tests for ``larray`` class
 
-Copyright Andrew P. Davison, 2012
+Copyright Andrew P. Davison and Joël Chavas, 2012-2014
 """
 
 from lazyarray import larray, VectorizedIterable, sqrt, partial_shape
@@ -412,6 +413,12 @@ def test_getitem_with_mask_from_2D_functional_array():
 def test_getitem_with_mask_from_1D_functional_array():
     m = larray(lambda i: numpy.sqrt(i), shape=(10,))
     assert_array_equal(m[[0, 1, 4, 9]],
+                       numpy.array([0, 1, 2, 3]))
+
+
+def test_getitem_with_boolean_mask_from_1D_functional_array():
+    m = larray(lambda i: numpy.sqrt(i), shape=(10,))
+    assert_array_equal(m[numpy.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 1], dtype=bool)],
                        numpy.array([0, 1, 2, 3]))
 
 
