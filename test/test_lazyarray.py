@@ -185,6 +185,13 @@ def test_evaluate_with_vectorized_iterable():
                        numpy.arange(21).reshape((7, 3)))
 
 
+def test_evaluate_structured_array_size_1_simplify():
+    m = larray([5.0], shape=(1,))
+    assert_equal(m.evaluate(simplify=True), 5.0)
+    n = larray([2.0], shape=(1,))
+    assert_equal((m/n).evaluate(simplify=True), 2.5)
+
+
 def test_iadd_with_flat_array():
     m = larray(5, shape=(4, 3))
     m += 2
@@ -260,6 +267,13 @@ def test_multiple_operations_with_functional_array():
     assert_array_almost_equal(m0.evaluate(), numpy.array([0.0, 0.01, 0.02, 0.03, 0.04]), decimal=12)
     assert_array_almost_equal(m1.evaluate(), numpy.array([0.20, 0.21, 0.22, 0.23, 0.24]), decimal=12)
     assert_equal(m1[0], 0.2)
+
+
+def test_operations_combining_constant_and_structured_arrays():
+    m0 = larray(10, shape=(5,))
+    m1 = larray(numpy.arange(5))
+    m2 = m0 + m1
+    assert_array_almost_equal(m2.evaluate(), numpy.arange(10, 15))
 
 
 def test_apply_function_to_constant_array():
@@ -697,4 +711,22 @@ def test_partial_shape():
         (numpy.array([], bool), (0, 3)),
     ]
     for mask, expected_shape in test_cases:
-        assert_equal(partial_shape(mask, a.shape), a[mask].shape, expected_shape)
+        assert_equal(partial_shape(mask, a.shape), a[mask].shape)
+        assert_equal(partial_shape(mask, a.shape), expected_shape)
+    b = numpy.arange(5)
+    test_cases = [
+        (numpy.arange(5), (5,))
+    ]
+    for mask, expected_shape in test_cases:
+        assert_equal(partial_shape(mask, b.shape), b[mask].shape)
+        assert_equal(partial_shape(mask, b.shape), expected_shape)
+
+def test_is_homogeneous():
+    m0 = larray(10, shape=(5,))
+    m1 = larray(numpy.arange(1, 6))
+    m2 = m0 + m1
+    m3 = 9 + m0 / m1
+    assert m0.is_homogeneous
+    assert not m1.is_homogeneous
+    assert not m2.is_homogeneous
+    assert not m3.is_homogeneous
