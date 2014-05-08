@@ -13,7 +13,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 # stuff for Python 3 compatibility
 try:
@@ -59,7 +59,7 @@ def requires_shape(meth):
 
 
 def full_address(addr, full_shape):
-    if not (isinstance(addr, numpy.ndarray) and addr.ndim == len(full_shape)):
+    if not (isinstance(addr, numpy.ndarray) and addr.dtype == bool and addr.ndim == len(full_shape)):
         if not isinstance(addr, tuple):
             addr = (addr,)
         if len(addr) < len(full_shape):
@@ -253,8 +253,7 @@ class larray(object):
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
         hom_base = isinstance(self.base_value, (int, long, numpy.integer, float, bool)) or type(self.base_value) == self.dtype
-        hom_ops = all(isinstance(obj.base_value, (int, long, numpy.integer, float, bool))
-                      for obj in self.operations if isinstance(obj, larray))
+        hom_ops = all(obj.is_homogeneous for f, obj in self.operations if isinstance(obj, larray))
         return hom_base and hom_ops
 
     def _partial_shape(self, addr):
@@ -330,6 +329,8 @@ class larray(object):
                 base_val = self.base_value
             else:
                 base_val = self._homogeneous_array(addr) * self.base_value
+        elif isinstance(self.base_value, (int, long, numpy.integer, float, bool)):
+            base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
             base_val = self.base_value[addr]
         elif callable(self.base_value):
@@ -351,7 +352,7 @@ class larray(object):
         elif isinstance(self.base_value, collections.Iterator):
             raise NotImplementedError("coming soon...")
         else:
-            raise ValueError("invalid base value for array")
+            raise ValueError("invalid base value for array (%s)" % self.base_value)
         return self._apply_operations(base_val, addr, simplify=simplify)
 
     @requires_shape
@@ -439,6 +440,8 @@ class larray(object):
                 x = self.base_value
             else:
                 x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
+        elif isinstance(self.base_value, (int, long, numpy.integer, float, bool)):
+            x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
