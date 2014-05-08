@@ -45,5 +45,11 @@ Release 0.2.4
 * Fixed bugs related to indexing multiple axes at the same time (`#3`_, `#4`_)
 
 
+Release 0.2.5
+=============
+
+* Fixed a bug where the base value was homogeneous but one or more operations involved inhomogeneous arrays
+
+
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
 .. _`#4`: https://bitbucket.org/apdavison/lazyarray/issue/4/
