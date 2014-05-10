@@ -13,7 +13,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 # stuff for Python 3 compatibility
 try:
@@ -460,10 +460,10 @@ class larray(object):
 
     def __call__(self, arg):
         if callable(self.base_value):
-            if callable(arg):
-                new_map = larray(arg)
-            elif isinstance(arg, lazyarray):
+            if isinstance(arg, larray):
                 new_map = deepcopy(arg)
+            elif callable(arg):
+                new_map = larray(arg)
             else:
                 raise Exception("Argument must be either callable or an larray.")
             new_map.operations.append((self.base_value, None))

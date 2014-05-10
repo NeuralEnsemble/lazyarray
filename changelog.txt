@@ -48,7 +48,13 @@ Release 0.2.4
 Release 0.2.5
 =============
 
-* Fixed a bug where the base value was homogeneous but one or more operations involved inhomogeneous arrays
+* Fixed a bug where the base value was homogeneous but one or more operations involved inhomogeneous arrays.
+
+
+Release 0.2.6
+=============
+
+* Fixed a bug with callable lazyarrays.
 
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
