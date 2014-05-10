@@ -634,6 +634,7 @@ def test_call():
     B = 0.5 * larray(lambda i: 2 * i, shape=(3,))
     C = B(A)
     assert_array_equal(C.evaluate(), numpy.array([0, 1, 2]))
+    assert_array_equal(A.evaluate(), numpy.array([0, 1, 2]))  # A should be unchanged
 
 
 def test_call2():
@@ -659,6 +660,14 @@ def test_call2():
     distance_map = larray(distance_generator(position_generator, position_generator),
                           shape=(4, 5))
     f_delay = 1000 * larray(lambda d: 0.1 * (1 + d), shape=(4, 5))
+    assert_array_almost_equal(
+        f_delay(distance_map).evaluate(),
+        numpy.array([[100, 300, 500, 700, 900],
+                     [300, 100, 300, 500, 700],
+                     [500, 300, 100, 300, 500],
+                     [700, 500, 300, 100, 300]], dtype=float),
+        decimal=12)
+    # repeat, should be idempotent
     assert_array_almost_equal(
         f_delay(distance_map).evaluate(),
         numpy.array([[100, 300, 500, 700, 900],
