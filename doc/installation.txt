@@ -21,7 +21,7 @@ to have administrator privileges on the machine you are installing on).
     
 To download and install manually, download:
 
-    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.2.6.tar.gz#md5=a73e83c77ae609f273556b59b4eb0e8f
+    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.2.6.tar.gz#md5=5a34f1587f53433d7433b3f6bf428c56
 
 Then::
 
