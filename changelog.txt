@@ -56,6 +56,11 @@ Release 0.2.6
 
 * Fixed a bug with callable lazyarrays.
 
+Release 0.2.7
+=============
+
+* When deepcopying, VectorizedIterable objects as base_value are no longer copied, rather we keep a reference to the original.
+
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
 .. _`#4`: https://bitbucket.org/apdavison/lazyarray/issue/4/

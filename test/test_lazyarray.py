@@ -185,6 +185,16 @@ def test_evaluate_with_vectorized_iterable():
                        numpy.arange(21).reshape((7, 3)))
 
 
+def test_evaluate_twice_with_vectorized_iterable():
+    input = MockRNG(0, 1)
+    m1 = larray(input, shape=(7, 3)) + 3
+    m2 = larray(input, shape=(7, 3)) + 17
+    assert_array_equal(m1.evaluate(),
+                       numpy.arange(3, 24).reshape((7, 3)))
+    assert_array_equal(m2.evaluate(),
+                       numpy.arange(38, 59).reshape((7, 3)))
+
+
 def test_evaluate_structured_array_size_1_simplify():
     m = larray([5.0], shape=(1,))
     assert_equal(m.evaluate(simplify=True), 5.0)
