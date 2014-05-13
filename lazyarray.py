@@ -13,7 +13,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 # stuff for Python 3 compatibility
 try:
@@ -198,10 +198,13 @@ class larray(object):
 
     def __deepcopy__(self, memo):
         obj = type(self).__new__(type(self))
-        try:
-            obj.base_value = deepcopy(self.base_value)
-        except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
-            obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
+        if isinstance(self.base_value, VectorizedIterable):  # special case, but perhaps need to rethink
+            obj.base_value = self.base_value                 # whether deepcopy is appropriate everywhere
+        else:
+            try:
+                obj.base_value = deepcopy(self.base_value)
+            except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
+                obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
         obj._shape = self._shape
         obj.dtype = self.dtype
         obj.operations = []
