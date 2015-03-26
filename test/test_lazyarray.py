@@ -378,6 +378,12 @@ def test_getslice_from_constant_array():
                                     [3, 3, 3]]))
 
 
+def test_getslice_past_bounds_from_constant_array():
+    m = larray(3, shape=(5,))
+    assert_array_equal(m[2:10],
+                       numpy.array([3, 3, 3]))
+
+
 def test_getitem_from_structured_array():
     m = larray(3 * numpy.ones((4, 3)), shape=(4, 3))
     assert m[0, 0] == m[3, 2] == m[-1, 2] == m[-4, 2] == m[2, -3] == 3

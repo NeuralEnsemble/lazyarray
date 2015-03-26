@@ -7,3 +7,5 @@ MANIFEST
 build
 cover
 .coverage
+.idea
+*.egg-info

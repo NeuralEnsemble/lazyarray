@@ -13,7 +13,7 @@ import collections
 from functools import wraps
 import logging
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 # stuff for Python 3 compatibility
 try:
@@ -78,7 +78,8 @@ def partial_shape(addr, full_shape):
         if isinstance(x, (int, long, numpy.integer)):
             return None
         elif isinstance(x, slice):
-            return 1 + ((x.stop or max) - (x.start or 0) - 1) // (x.step or 1)
+            y = min(max, x.stop or max)  # slice limits can go past the bounds
+            return 1 + (y - (x.start or 0) - 1) // (x.step or 1)
         elif isinstance(x, collections.Sized):
             if hasattr(x, 'dtype') and x.dtype == bool:
                 return x.sum()
@@ -371,7 +372,7 @@ class larray(object):
                 lower = upper = x
             elif isinstance(x, slice):
                 lower = x.start or 0
-                upper = x.stop or size - 1
+                upper = min(x.stop or size - 1, size - 1)  # slices are allowed to go past the bounds
             elif isinstance(x, collections.Sized):
                 if is_boolean_array(x):
                     lower = 0
