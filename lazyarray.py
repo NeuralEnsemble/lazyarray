@@ -223,7 +223,9 @@ class larray(object):
                                                                              self.operations)
 
     def _set_shape(self, value):
-        if hasattr(self.base_value, "shape") and self.base_value.shape != value:
+        if (hasattr(self.base_value, "shape") and
+                self.base_value.shape and   # values of type numpy.float have an empty shape
+                    self.base_value.shape != value):
             raise ValueError("Lazy array has fixed shape %s, cannot be changed to %s" % (self.base_value.shape, value))
         self._shape = value
         for op in self.operations:
