@@ -186,7 +186,7 @@ class larray(object):
         else:
             assert numpy.isreal(value)  # also True for callables, generators, iterators
             self._shape = shape
-            if dtype is None:
+            if dtype is None or isinstance(value, dtype):
                 self.base_value = value
             else:
                 try:
