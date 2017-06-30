@@ -694,11 +694,12 @@ def test_call2():
 
 
 def test__issue4():
-    m = larray(numpy.arange(12).reshape((4, 3)))
+    a = numpy.arange(12).reshape((4, 3))
+    b = larray(numpy.arange(12).reshape((4, 3)))
     mask1 = (slice(None), True)
     mask2 = (slice(None), numpy.array([True]))
-    assert_equal(m[mask1].shape, partial_shape(mask1, m.shape), (4,))
-    assert_equal(m[mask2].shape, partial_shape(mask2, m.shape), (4, 1))
+    assert_equal(b[mask1].shape, partial_shape(mask1, b.shape), a[mask1].shape)
+    assert_equal(b[mask2].shape, partial_shape(mask2, b.shape), a[mask2].shape)
 
 
 def test__issue3():
@@ -723,9 +724,9 @@ def test_partial_shape():
         (numpy.array([0, 2, 3]), (3, 3)),
         ((numpy.array([0, 2, 3]), slice(None)), (3, 3)),
         (numpy.array([True, False, True, True]), (3, 3)),
-        (numpy.array([True, False]), (1, 3)),
+        #(numpy.array([True, False]), (1, 3)),  # not valid with NumPy 1.13
         (numpy.array([[True, False, False], [False, False, False], [True, True, False], [False, True, False]]), (4,)),
-        (numpy.array([[True, False, False], [False, False, False], [True, True, False]]), (3,)),
+        #(numpy.array([[True, False, False], [False, False, False], [True, True, False]]), (3,)),  # not valid with NumPy 1.13
         ((3, 1), tuple()),
         ((slice(None), 1), (4,)),
         ((slice(None), slice(1, None, 3)), (4, 1)),
