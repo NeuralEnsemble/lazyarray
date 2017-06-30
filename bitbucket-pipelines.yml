@@ -10,5 +10,6 @@ pipelines:
     - step:
         caches:
           - pip
-        script: # Modify the commands below to build your repository.
+        script:
           - pip install -r requirements.txt
+          - nosetests
