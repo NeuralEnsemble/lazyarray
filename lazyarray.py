@@ -178,7 +178,7 @@ class larray(object):
             if not isinstance(value, numpy.ndarray):
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
-                assert value.dtype == dtype  # or could convert value to the provided dtype
+                assert numpy.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
             if shape and value.shape != shape:
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             self._shape = value.shape
