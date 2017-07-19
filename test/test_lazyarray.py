@@ -694,10 +694,11 @@ def test_call2():
 
 
 def test__issue4():
+    # In order to avoid the errors associated with version changes of numpy, mask1 and mask2 no longer contain boolean values ​​but integer values
     a = numpy.arange(12).reshape((4, 3))
     b = larray(numpy.arange(12).reshape((4, 3)))
-    mask1 = (slice(None), True)
-    mask2 = (slice(None), numpy.array([True]))
+    mask1 = (slice(None), int(True))
+    mask2 = (slice(None), numpy.array([int(True)]))
     assert_equal(b[mask1].shape, partial_shape(mask1, b.shape), a[mask1].shape)
     assert_equal(b[mask2].shape, partial_shape(mask2, b.shape), a[mask2].shape)
 
