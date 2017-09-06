@@ -13,6 +13,11 @@ import collections
 from functools import wraps
 import logging
 
+from scipy import sparse
+from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
+
+
+
 __version__ = "0.2.10"
 
 # stuff for Python 3 compatibility
@@ -49,6 +54,7 @@ def check_shape(meth):
     return wrapped_meth
 
 
+
 def requires_shape(meth):
     @wraps(meth)
     def wrapped_meth(self, *args, **kwargs):
@@ -56,6 +62,8 @@ def requires_shape(meth):
             raise ValueError("Shape of larray not specified")
         return meth(self, *args, **kwargs)
     return wrapped_meth
+
+
 
 
 def full_address(addr, full_shape):
@@ -136,6 +144,7 @@ def lazy_unary_operation(name):
     return op
 
 
+
 class larray(object):
     """
     Optimises storage of and operations on arrays in various ways:
@@ -150,6 +159,7 @@ class larray(object):
       - in parallelized code, different rows or columns may be evaluated
         on different nodes or in different threads.
     """
+  
 
     def __init__(self, value, shape=None, dtype=None):
         """
@@ -163,6 +173,7 @@ class larray(object):
         and a 1D array when either `i` or `j` or both is a NumPy array (in the
         latter case the two arrays must have equal lengths).
         """
+
         self.dtype = dtype
         self.operations = []
         if isinstance(value, basestring):
@@ -174,15 +185,43 @@ class larray(object):
             self.base_value = value.base_value
             self.dtype = dtype or value.dtype
             self.operations = value.operations  # should deepcopy?
+      
         elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
-            if not isinstance(value, numpy.ndarray):
+
+### For sparse matrices 
+            if isinstance(value, sparse.bsr_matrix):      # For bsr_matrix
+                self.dtype = dtype or value.dtype                
+
+            elif isinstance(value, sparse.coo_matrix):    # For coo_matrix
+                self.dtype = dtype or value.dtype 
+
+            elif isinstance(value, sparse.csc_matrix):    # For csc_matrix
+                self.dtype = dtype or value.dtype                
+
+            elif isinstance(value, sparse.csr_matrix):    # For csr_matrix
+                self.dtype = dtype or value.dtype                
+
+            elif isinstance(value, sparse.dia_matrix):    # For dia_matrix
+                self.dtype = dtype or value.dtype     
+
+            elif isinstance(value, sparse.dok_matrix):    # For dok_matrix
+                self.dtype = dtype or value.dtype                
+
+            elif isinstance(value, sparse.lil_matrix):    # For lil_matrix
+                self.dtype = dtype or value.dtype                
+
+
+            elif not isinstance(value, numpy.ndarray):  
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
-                assert numpy.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
+                assert value.dtype == dtype  # or could convert value to the provided dtype         
+            
             if shape and value.shape != shape:
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             self._shape = value.shape
             self.base_value = value
+
+        
         else:
             assert numpy.isreal(value)  # also True for callables, generators, iterators
             self._shape = shape
@@ -193,6 +232,7 @@ class larray(object):
                     self.base_value = dtype(value)
                 except TypeError:
                     self.base_value = value
+                                     
 
     def __eq__(self, other):
         return self.base_value == other.base_value and self.operations == other.operations and self._shape == other.shape
@@ -339,6 +379,33 @@ class larray(object):
             base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
             base_val = self.base_value[addr]
+
+
+# For sparse matrices larr[2, :]
+        elif isinstance(self.base_value, sparse.bsr_matrix): # For bsr_matrix
+            base_val = self.base_value[addr]
+           
+        elif isinstance(self.base_value, sparse.coo_matrix): # For coo_matrix
+            base_val = self.base_value[addr]    
+
+        elif isinstance(self.base_value, sparse.csc_matrix): # For csc_matrix
+            base_val = self.base_value[addr]
+
+        elif isinstance(self.base_value, sparse.csr_matrix): # For csr_matrix
+            base_val = self.base_value[addr]
+
+        elif isinstance(self.base_value, sparse.dia_matrix): # For dia_matrix
+            base_val = self.base_value[addr]
+
+        elif isinstance(self.base_value, sparse.dok_matrix): # For dok_matrix
+            base_val = self.base_value[addr]
+
+        elif isinstance(self.base_value, sparse.lil_matrix): # For lil_matrix
+            base_val = self.base_value[addr]
+
+
+
+
         elif callable(self.base_value):
             indices = self._array_indices(addr)
             base_val = self.base_value(*indices)
@@ -428,18 +495,19 @@ class larray(object):
                     x = f(x, arg.evaluate(simplify=simplify))
                 else:
                     x = f(x, arg._partially_evaluate(addr, simplify=simplify))
+
             else:
                 x = f(x, arg)
         return x
 
     @requires_shape
-    def evaluate(self, simplify=False):
+    def evaluate(self, simplify=False, empty_val=0):    
         """
         Return the lazy array as a real NumPy array.
 
         If the array is homogeneous and ``simplify`` is ``True``, return a
         single numerical value.
-        """
+        """        
         # need to catch the situation where a generator-based larray is evaluated a second time
         if self.is_homogeneous:
             if simplify:
@@ -456,6 +524,73 @@ class larray(object):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
+
+### For sparse matrices
+        elif isinstance(self.base_value, sparse.bsr_matrix):   # For bsr_matrix
+            if empty_val!=0:    
+                x = self.base_value.toarray((sparse.bsr_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+            else:
+                x = self.base_value.toarray((sparse.bsr_matrix))
+
+
+        elif isinstance(self.base_value, sparse.coo_matrix):   # For coo_matrix            
+             if empty_val!=0:    
+                x = self.base_value.toarray((sparse.coo_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+             else:
+                x = self.base_value.toarray((sparse.coo_matrix))
+            
+            
+        elif isinstance(self.base_value, sparse.csc_matrix):   # For csc_matrix            
+            if empty_val!=0:    
+                x = self.base_value.toarray((sparse.csc_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+            else:
+                x = self.base_value.toarray((sparse.csc_matrix))
+
+
+        elif isinstance(self.base_value, sparse.csr_matrix):   # For csr_matrix            
+             if empty_val!=0:    
+                x = self.base_value.toarray((sparse.csr_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+             else:
+                x = self.base_value.toarray((sparse.csr_matrix))
+                     
+
+        elif isinstance(self.base_value, sparse.dia_matrix):   # For dia_matrix            
+             if empty_val!=0:    
+                x = self.base_value.toarray((sparse.dia_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+             else:
+                x = self.base_value.toarray((sparse.dia_matrix))
+            
+
+        elif isinstance(self.base_value, sparse.dok_matrix):   # For dok_matrix            
+             if empty_val!=0:    
+                x = self.base_value.toarray((sparse.dok_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+             else:
+                x = self.base_value.toarray((sparse.dok_matrix))
+            
+            
+        elif isinstance(self.base_value, sparse.lil_matrix):   # For lil_matrix            
+             if empty_val!=0:    
+                x = self.base_value.toarray((sparse.lil_matrix))
+                x = numpy.where(x, x, numpy.nan)
+
+             else:
+                x = self.base_value.toarray((sparse.lil_matrix))
+            
+
+
+
         elif isinstance(self.base_value, collections.Iterator):
             x = numpy.fromiter(self.base_value, dtype=self.dtype or float, count=self.size)
             if x.shape != self._shape:
@@ -533,3 +668,4 @@ for name in dir(numpy):
     obj = getattr(numpy, name)
     if isinstance(obj, numpy.ufunc):
         namespace[name] = _build_ufunc(obj)
+
