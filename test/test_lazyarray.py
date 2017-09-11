@@ -165,7 +165,7 @@ def test_create_with_sparse_array():
         # For dia_matrix
         dia0 = dia /100.0
         dia1 = 0.2 + dia0
-        assert_array_almost_equal(dia0.evaluate(), np.array([[0.01, 0.02, 0.03, 0.04]))
+        assert_array_almost_equal(dia0.evaluate(), np.array([[0.01, 0.02, 0.03, 0.04]]))
         assert_array_almost_equal(dia1.evaluate(), np.array([[0.21, 0.22, 0.23, 0.24]]))
          # For dok_matrix
         dok0 = dok /100.0
@@ -176,7 +176,7 @@ def test_create_with_sparse_array():
         lil0 = lil /100.0
         lil1 = 0.2 + lil0
         assert_array_almost_equal(lil0.evaluate(), np.array([[0.01, 0.02, 0.03, 0.04, 0.05, 0.06]]))
-        assert_array_almost_equal(lil1.evaluate(), np.array([[0.21, 0.22, 0.23, 0.24, 0.25, 0.26]])
+        assert_array_almost_equal(lil1.evaluate(), np.array([[0.21, 0.22, 0.23, 0.24, 0.25, 0.26]]))
 
 
     def test_getitem_from_2D_sparse_array():
