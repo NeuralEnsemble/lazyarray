@@ -240,3 +240,176 @@ The same is true for accessing individual rows or columns:
            [ 2, 14],
            [ 4, 16],
            [ 6, 18]])
+
+
+Creating lazy arrays from SciPy sparse matrices
+===============================================
+
+Lazy arrays may also be created from SciPy sparse matrices. There are 7 different sparse matrices.
+
+- csc_matrix(arg1[, shape, dtype, copy])	            Compressed Sparse Column matrix
+- csr_matrix(arg1[, shape, dtype, copy])	            Compressed Sparse Row matrix
+- bsr_matrix(arg1[, shape, dtype, copy, blocksize])	    Block Sparse Row matrix
+- lil_matrix(arg1[, shape, dtype, copy])	            Row-based linked list sparse matrix
+- dok_matrix(arg1[, shape, dtype, copy])	            Dictionary Of Keys based sparse matrix.
+- coo_matrix(arg1[, shape, dtype, copy])	            A sparse matrix in COOrdinate format.
+- dia_matrix(arg1[, shape, dtype, copy])	            Sparse matrix with DIAgonal storage
+
+Here are some examples to use them.
+
+
+Creating sparse matrices
+------------------------
+
+Sparse matrices comes from SciPy package for numerical data.
+First to use them it is necessary to import libraries.
+
+.. doctest::
+
+    >>> import numpy as np
+    >>> from lazyarray import larray
+    >>> from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
+
+Creating a sparse matrix requires filling each row and column with data. For example :
+
+.. doctest::
+
+    >>> row = np.array([0, 2, 2, 0, 1, 2])
+    >>> col = np.array([0, 0, 1, 2, 2, 2])
+    >>> data = np.array([1, 2, 3, 4, 5, 6])
+
+The 7 sparse matrices are not defined in the same way.
+
+The bsr_matrix, coo_matrix, csc_matrix and csr_matrix are defined as follows :
+
+.. doctest::
+
+    >>> sparr = bsr_matrix((data, (row, col)), shape=(3, 3))
+    >>> sparr = coo_matrix((data, (row, col)), shape=(3, 3))
+    >>> sparr = csc_matrix((data, (row, col)), shape=(3, 3))
+    >>> sparr = csr_matrix((data, (row, col)), shape=(3, 3))
+
+In regards to the dia_matrix :
+
+.. doctest::
+
+    >>> data_dia = np.array([[1, 2, 3, 4]]).repeat(3, axis=0)
+    >>> offsets = np.array([0, -1, 2])
+    >>> sparr = dia_matrix((data_dia, offsets), shape=(4, 4))
+
+For the dok_matrix :
+
+.. doctest::
+
+    >>> sparr = dok_matrix(((row, col)), shape=(3, 3))
+
+For the lil_matrix :
+
+.. doctest::
+
+    >>> sparr = lil_matrix(data, shape=(3, 3)) 
+
+In the continuation of this tutorial, the sparse matrix used will be called sparr and refers to the csc_matrix.
+
+It is possible to convert the sparse matrix as a NumPy array, as follows:
+
+.. doctest::
+
+    >>> print(sparr.toarray())
+    array([[1, 0, 4],
+           [0, 0, 5],
+           [2, 3, 6]])
+
+
+Specifying the shape and the type of a sparse matrix
+----------------------------------------------------
+
+To know the shape and the type of the sparse matrices, you can use :
+
+.. doctest::
+
+    >>> larr = larray(sparr)
+    >>> print (larr.shape)
+    (3, 3)
+    >>> print (larr.dtype)
+    dtype('int64')
+
+
+Evaluating a sparse matrix
+--------------------------
+
+Evaluating a sparse matrix refers to the evaluate() method, which returns a NumPy array :
+
+.. doctest::
+
+    >>> print (larr.evaluate())
+    array([[1, 0, 4],
+           [0, 0, 5],
+           [2, 3, 6]])
+
+When creating a sparse matrix, some values ​​may remain empty.
+In this case, the evaluate () method has the argument, called empty_val, referring to the special value nan, for Not a Number, defined in NumPy.
+This method fills these empty with this nan value.
+
+.. doctest::
+
+    >>> print (larr.evaluate(empty_val=np.nan))
+    array([[1, nan, 4],
+           [nan, nan, 5],
+           [2, 3, 6]])
+
+
+Accessing individual rows or columns of a sparse matrix
+-------------------------------------------------------
+
+To access specific elements of the matrix, like individual rows or columns :
+
+.. doctest::
+
+    >>> larr[2, :]
+
+In this case, the third line of the sparse matrix is obtained.
+However, this method is different depending on the sparse matrices used :
+
+For csc_matrix and csr_matrix :
+
+.. doctest::
+
+    >>> print (larr[2, :])
+    array([2, 3, 6])
+
+During execution, the matrices bsr_matrix, coo_matrix and dia_matrix, do not support indexing.
+The solution is to convert them to another format.
+It is therefore necessary to go through csr_matrix in order to perform the calculation.
+
+.. doctest::
+
+    >>> print(sparr.tocsr()[2,:])
+
+Depending on the definition given previously to the matrix, for the dok_matrix :
+
+.. doctest::
+
+    >>> print (larr[1, :])
+
+And for lil_matrix :
+
+.. doctest::
+
+    >>> print (larr[0, :])
+
+In case we want to access an element of a column, we must proceed in the same way as previously, by changing index.
+Here is an example of how to access an item in the third column of the sparse matrix.
+
+.. doctest::
+
+    >>> larr[:, 2]
+
+Finally, to have information on the sparse matrix :
+
+.. doctest::
+
+    >>>print (larr.base_value)
+    <3x3 sparse matrix of type '<class 'numpy.int64'>'
+    	with 6 stored elements in Compressed Sparse Column format>
+
