@@ -5,12 +5,15 @@ python:
   - 3.4
   - 3.6
 env:
-  - NUMPY_VERSION="1.8.2"
-    SCIPY_VERSION="0.14.1"
-  - NUMPY_VERSION="1.12.1"
-    SCIPY_VERSION="0.17.1"
-  - NUMPY_VERSION="1.13.1"
-    SCIPY_VERSION="0.19.1"
+  - NUMPY_VERSION="1.8.2" SCIPY_VERSION="0.14.1"
+  - NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.17.1"
+  - NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
+matrix:
+    exclude:
+    - python: 3.6
+      env: NUMPY_VERSION="1.8.2" SCIPY_VERSION="0.14.1"
+    - python: 3.6
+      env: NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.17.1"
 install:
   - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION"
 script:
