@@ -5,6 +5,7 @@ class, ``larray``, based on and compatible with NumPy arrays.
 
 Copyright Andrew P. Davison and Joël Chavas 2012-2016
 """
+
 from __future__ import division
 import numpy
 import operator
@@ -13,9 +14,12 @@ import collections
 from functools import wraps
 import logging
 
-from scipy import sparse
-from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
-
+try:
+    from scipy import sparse
+    from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
+    have_scipy = True
+except ImportError:
+    have_scipy = False
 
 
 __version__ = "0.2.10"
@@ -205,7 +209,6 @@ class larray(object):
                     self.base_value = dtype(value)
                 except TypeError:
                     self.base_value = value
-                                     
 
     def __eq__(self, other):
         return self.base_value == other.base_value and self.operations == other.operations and self._shape == other.shape
@@ -271,7 +274,9 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        hom_base = isinstance(self.base_value, (int, long, numpy.integer, float, bool)) or type(self.base_value) == self.dtype
+        hom_base = isinstance(self.base_value, (int, long, numpy.integer, float, bool)) \
+                   or type(self.base_value) == self.dtype \
+                   or (isinstance(self.dtype, type) and isinstance(self.base_value, self.dtype))
         hom_ops = all(obj.is_homogeneous for f, obj in self.operations if isinstance(obj, larray))
         return hom_base and hom_ops
 
@@ -359,6 +364,8 @@ class larray(object):
             base_val = self.base_value(*indices)
             if isinstance(base_val, numpy.ndarray) and base_val.shape == (1,):
                 base_val = base_val[0]
+        elif hasattr(self.base_value, "lazily_evaluate"):
+            base_val = self.base_value.lazily_evaluate(addr, shape=self._shape)
         elif isinstance(self.base_value, VectorizedIterable):
             partial_shape = self._partial_shape(addr)
             if partial_shape:
@@ -462,12 +469,14 @@ class larray(object):
                 x = self.base_value
             else:
                 x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
-        elif isinstance(self.base_value, (int, long, numpy.integer, float, bool)):
+        elif isinstance(self.base_value, (int, long, numpy.integer, float, bool, numpy.bool_)):
             x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
         elif callable(self.base_value):
             x = numpy.array(numpy.fromfunction(self.base_value, shape=self._shape, dtype=int), dtype=self.dtype)
+        elif hasattr(self.base_value, "lazily_evaluate"):
+            x = self.base_value.lazily_evaluate(shape=self._shape)
         elif isinstance(self.base_value, VectorizedIterable):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
