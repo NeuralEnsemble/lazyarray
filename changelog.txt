@@ -83,6 +83,10 @@ Release 0.3.0
 * Support any object that implements a method `lazily_evaluate` as a base value
 * Allow more flexibility in checking 'equality' of types, e.g. accept an array of dtype `numpy.float32` when the specified dtype is `float`
 
+Release 0.3.1
+=============
+
+* Fix a packaging issue, update project homepage.
 
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/

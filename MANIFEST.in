@@ -1,4 +1,5 @@
 include LICENSE
+include README.rst
 include changelog.txt
 recursive-include doc *.txt
 prune doc/_build

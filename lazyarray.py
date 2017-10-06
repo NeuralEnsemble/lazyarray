@@ -22,7 +22,7 @@ except ImportError:
     have_scipy = False
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # stuff for Python 3 compatibility
 try:
