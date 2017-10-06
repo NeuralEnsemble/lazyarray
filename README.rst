@@ -14,10 +14,10 @@ also possible.
 Use of an ``larray`` can potentially save considerable computation time
 and memory in cases where:
 
-    * arrays are used conditionally (i.e. there are cases in which the array is
-      never used)
-    * only parts of an array are used (for example in distributed computation,
-      in which each MPI node operates on a subset of the elements of the array)
+* arrays are used conditionally (i.e. there are cases in which the array is
+  never used)
+* only parts of an array are used (for example in distributed computation,
+  in which each MPI node operates on a subset of the elements of the array)
 
 
 .. image:: https://readthedocs.org/projects/lazyarray/badge/?version=latest
