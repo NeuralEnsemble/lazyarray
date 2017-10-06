@@ -9,7 +9,7 @@ setup(
     license='Modified BSD',
     author="Andrew P. Davison",
     author_email="andrew.davison@unic.cnrs-gif.fr",
-    url="http://bitbucket.org/apdavison/lazyarray/",
+    url="http://github.com/NeuralEnsemble/lazyarray/",
     description="a Python package that provides a lazily-evaluated numerical array class, larray, based on and compatible with NumPy arrays.",
     long_description=open('README.rst').read(),
     install_requires=[
