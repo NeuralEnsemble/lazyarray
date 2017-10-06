@@ -15,6 +15,8 @@ matrix:
     - python: 3.6
       env: NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.17.1"
 install:
-  - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION"
+  - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION" coverage coveralls
 script:
-  - nosetests
+  - nosetests --with-coverage --cover-package=lazyarray
+after_success:
+  - coveralls
