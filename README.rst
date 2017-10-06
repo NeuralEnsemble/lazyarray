@@ -18,5 +18,15 @@ and memory in cases where:
       never used)
     * only parts of an array are used (for example in distributed computation,
       in which each MPI node operates on a subset of the elements of the array)
-      
-Documentation: http://lazyarray.readthedocs.org/
+
+
+.. image:: https://readthedocs.org/projects/lazyarray/badge/?version=latest
+   :target: http://lazyarray.readthedocs.io/en/latest/
+
+.. image:: https://travis-ci.org/NeuralEnsemble/lazyarray.svg?branch=master
+   :target: https://travis-ci.org/NeuralEnsemble/lazyarray/
+
+.. image:: https://coveralls.io/repos/github/NeuralEnsemble/lazyarray/badge.svg?branch=master
+   :target: https://coveralls.io/github/NeuralEnsemble/lazyarray?branch=master
+
+
