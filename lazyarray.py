@@ -22,7 +22,7 @@ except ImportError:
     have_scipy = False
 
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 # stuff for Python 3 compatibility
 try:
@@ -188,7 +188,7 @@ class larray(object):
             self.operations = value.operations  # should deepcopy?
       
         elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
-            if sparse.issparse(value):  # For sparse matrices
+            if have_scipy and sparse.issparse(value):  # For sparse matrices
                 self.dtype = dtype or value.dtype                           
             elif not isinstance(value, numpy.ndarray):  
                 value = numpy.array(value, dtype=dtype)
@@ -357,7 +357,7 @@ class larray(object):
             base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
             base_val = self.base_value[addr]
-        elif sparse.issparse(self.base_value):  # For sparse matrices larr[2, :]
+        elif have_scipy and sparse.issparse(self.base_value):  # For sparse matrices larr[2, :]
             base_val = self.base_value[addr]
         elif callable(self.base_value):
             indices = self._array_indices(addr)
@@ -481,7 +481,7 @@ class larray(object):
             x = self.base_value.next(self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
-        elif sparse.issparse(self.base_value):  # For sparse matrices
+        elif have_scipy and sparse.issparse(self.base_value):  # For sparse matrices
             if empty_val!=0:
                 x = self.base_value.toarray((sparse.csc_matrix))
                 x = numpy.where(x, x, numpy.nan)
