@@ -51,7 +51,7 @@ def check_shape(meth):
     """
     @wraps(meth)
     def wrapped_meth(self, val):
-        if isinstance(val, (larray, numpy.ndarray)):
+        if isinstance(val, (larray, numpy.ndarray)) and val.shape:
             if val.shape != self._shape:
                 raise ValueError("shape mismatch: objects cannot be broadcast to a single shape")
         return meth(self, val)
@@ -160,7 +160,7 @@ class larray(object):
       - in parallelized code, different rows or columns may be evaluated
         on different nodes or in different threads.
     """
-  
+
 
     def __init__(self, value, shape=None, dtype=None):
         """
@@ -186,11 +186,11 @@ class larray(object):
             self.base_value = value.base_value
             self.dtype = dtype or value.dtype
             self.operations = value.operations  # should deepcopy?
-      
+
         elif isinstance(value, collections.Sized):  # False for numbers, generators, functions, iterators
             if have_scipy and sparse.issparse(value):  # For sparse matrices
-                self.dtype = dtype or value.dtype                           
-            elif not isinstance(value, numpy.ndarray):  
+                self.dtype = dtype or value.dtype
+            elif not isinstance(value, numpy.ndarray):
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
                assert numpy.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
@@ -198,7 +198,7 @@ class larray(object):
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             self._shape = value.shape
             self.base_value = value
-    
+
         else:
             assert numpy.isreal(value)  # also True for callables, generators, iterators
             self._shape = shape
