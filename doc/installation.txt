@@ -4,7 +4,7 @@ Installation
 
 Dependencies
 ============
-  
+
     * Python >= 2.7
     * numpy_ >= 1.8 (or >= 1.12 for Python 3)
     * (optional) scipy_ >= 0.14
@@ -15,24 +15,24 @@ Installing from the Python Package Index
 If you have pip_ installed::
 
     $ pip install lazyarray
-        
+
 This will automatically download and install the latest release (you may need
 to have administrator privileges on the machine you are installing on).
-    
+
 To download and install manually, download:
 
-    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.3.2.tar.gz
+    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.3.3.tar.gz
 
 Then::
 
-    $ tar xzf lazyarray-0.3.2.tar.gz
-    $ cd lazyarray-0.3.2
+    $ tar xzf lazyarray-0.3.3.tar.gz
+    $ cd lazyarray-0.3.3
     $ python setup.py install
-    
+
 or::
 
     $ python3 setup.py install
-    
+
 depending on which version of Python you are using.
 
 

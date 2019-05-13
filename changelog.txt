@@ -93,6 +93,11 @@ Release 0.3.2
 
 * Ensure SciPy is optional
 
+Release 0.3.3
+=============
+
+* Do not raise a "shape mismatch" `ValueError` if the value shape is empty.
+
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
 .. _`#4`: https://bitbucket.org/apdavison/lazyarray/issue/4/
