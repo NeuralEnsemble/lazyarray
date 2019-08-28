@@ -194,7 +194,7 @@ class larray(object):
                 value = numpy.array(value, dtype=dtype)
             elif dtype is not None:
                assert numpy.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
-            if shape and value.shape != shape:
+            if shape and value.shape and value.shape != shape:
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             self._shape = value.shape
             self.base_value = value
@@ -564,4 +564,3 @@ for name in dir(numpy):
     obj = getattr(numpy, name)
     if isinstance(obj, numpy.ufunc):
         namespace[name] = _build_ufunc(obj)
-
