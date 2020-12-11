@@ -1,0 +1,6 @@
+.coverage
+__pycache__/
+cover/
+lazyarray.egg-info/
+lazyarray.pyc
+test/__pycache__/

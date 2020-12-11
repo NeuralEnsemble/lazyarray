@@ -4,11 +4,11 @@ from distutils.core import setup
 
 setup(
     name='lazyarray',
-    version='0.3.3',
+    version='0.3.4',
     py_modules=['lazyarray'],
     license='Modified BSD',
     author="Andrew P. Davison",
-    author_email="andrew.davison@unic.cnrs-gif.fr",
+    author_email="andrew.davison@cnrs.fr",
     url="http://github.com/NeuralEnsemble/lazyarray/",
     description="a Python package that provides a lazily-evaluated numerical array class, larray, based on and compatible with NumPy arrays.",
     long_description=open('README.rst').read(),

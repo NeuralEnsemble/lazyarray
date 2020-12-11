@@ -3,17 +3,18 @@
 lazyarray is a Python package that provides a lazily-evaluated numerical array
 class, ``larray``, based on and compatible with NumPy arrays.
 
-Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2019
+Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2020
 """
 
 from __future__ import division
-import numpy
+import numbers
 import operator
 from copy import deepcopy
 import collections
 from functools import wraps
 import logging
 
+import numpy
 try:
     from scipy import sparse
     from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
@@ -22,7 +23,7 @@ except ImportError:
     have_scipy = False
 
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 # stuff for Python 3 compatibility
 try:
@@ -211,7 +212,19 @@ class larray(object):
                     self.base_value = value
 
     def __eq__(self, other):
-        return self.base_value == other.base_value and self.operations == other.operations and self._shape == other.shape
+        if isinstance(other, self.__class__):
+            return self.base_value == other.base_value and self.operations == other.operations and self._shape == other.shape
+        elif isinstance(other, numbers.Number):
+            if len(self.operations) == 0:
+                if isinstance(self.base_value, numbers.Number):
+                    return self.base_value == other
+                elif isinstance(self.base_value, numpy.ndarray):
+                    return (self.base_value == other).all()
+            # todo: we could perform the evaluation ourselves, but that could have a performance hit
+            raise Exception("You will need to evaluate this lazyarray before checking for equality")
+        else:
+            # todo: add support for NumPy arrays
+            raise TypeError("Cannot at present compare equality of lazyarray and {}".format(type(other)))
 
     def __deepcopy__(self, memo):
         obj = type(self).__new__(type(self))

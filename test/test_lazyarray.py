@@ -2,12 +2,12 @@
 """
 Unit tests for ``larray`` class
 
-Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2017
+Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2020
 """
 
 from lazyarray import larray, VectorizedIterable, sqrt, partial_shape
 import numpy
-from nose.tools import assert_raises, assert_equal
+from nose.tools import assert_raises, assert_equal, assert_not_equal
 from nose import SkipTest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import operator
@@ -123,7 +123,7 @@ def test_create_with_sparse_array():
     offsets_dia = numpy.array([0, -1, 2]) # For dia_matrix
     dia = larray(dia_matrix((data_dia, offsets_dia), shape=(4, 4))) # For dia_matrix
     dok = larray(dok_matrix(((row, col)), shape=(3, 3))) # For dok_matrix
-    lil = larray(lil_matrix(data, shape=(3, 3))) # For lil_matrix  
+    lil = larray(lil_matrix(data, shape=(3, 3))) # For lil_matrix
     assert bsr.shape == (3, 3)
     assert coo.shape == (3, 3)
     assert csc.shape == (3, 3)
@@ -161,7 +161,7 @@ def test_create_with_sparse_array():
         csr0 = csr /100.0
         csr1 = 0.2 + csr0
         assert_array_almost_equal(csc0.evaluate(), np.array([[0.01, 0., 0.04], [0., 0., 0.05], [0.02, 0.03, 0.06]]))
-        assert_array_almost_equal(csc0.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))    
+        assert_array_almost_equal(csc0.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
         # For dia_matrix
         dia0 = dia /100.0
         dia1 = 0.2 + dia0
@@ -187,7 +187,7 @@ def test_create_with_sparse_array():
         assert_raises(IndexError, dia.__getitem__, (3, 0))
         assert_raises(IndexError, dok.__getitem__, (3, 0))
         assert_raises(IndexError, lil.__getitem__, (3, 0))
-    
+
 
 # def test_columnwise_iteration_with_flat_array():
 # m = larray(5, shape=(4,3)) # 4 rows, 3 columns
@@ -696,10 +696,27 @@ def test_getslice_with_vectorized_iterable():
                        numpy.arange(8).reshape((4, 2)))
 
 
-def test_equality():
+def test_equality_with_lazyarray():
     m1 = larray(42.0, shape=(4, 5)) / 23.0 + 2.0
     m2 = larray(42.0, shape=(4, 5)) / 23.0 + 2.0
     assert_equal(m1, m2)
+
+
+def test_equality_with_number():
+    m1 = larray(42.0, shape=(4, 5))
+    m2 = larray([42, 42, 42])
+    m3 = larray([42, 42, 43])
+    m4 = larray(42.0, shape=(4, 5)) + 2
+    assert_equal(m1, 42.0)
+    assert_equal(m2, 42)
+    assert_not_equal(m3, 42)
+    assert_raises(Exception, m4.__eq__, 44.0)
+
+
+def test_equality_with_array():
+    m1 = larray(42.0, shape=(4, 5))
+    target = 42.0 * numpy.ones((4, 5))
+    assert_raises(TypeError, m1.__eq__, target)
 
 
 def test_deepcopy():
