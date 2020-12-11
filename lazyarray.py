@@ -197,7 +197,10 @@ class larray(object):
                assert numpy.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
             if shape and value.shape and value.shape != shape:
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
-            self._shape = value.shape
+            if value.shape:
+                self._shape = value.shape
+            else:
+                self._shape = shape
             self.base_value = value
 
         else:
