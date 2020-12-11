@@ -12,6 +12,10 @@ env:
   - NUMPY_VERSION="1.19.4" SCIPY_VERSION="1.5.4"
 matrix:
     exclude:
+    - python: 2.7
+      env: NUMPY_VERSION="1.19.4" SCIPY_VERSION="1.5.4"
+    - python: 3.4
+      env: NUMPY_VERSION="1.19.4" SCIPY_VERSION="1.5.4"
     - python: 3.6
       env: NUMPY_VERSION="1.8.2" SCIPY_VERSION="0.14.1"
     - python: 3.6
