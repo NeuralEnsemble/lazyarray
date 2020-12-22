@@ -98,6 +98,11 @@ Release 0.3.3
 
 * Do not raise a "shape mismatch" `ValueError` if the value shape is empty.
 
+Release 0.4.0
+=============
+
+* Drop support for Python 2.7
+
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
 .. _`#4`: https://bitbucket.org/apdavison/lazyarray/issue/4/
