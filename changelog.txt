@@ -105,6 +105,10 @@ Release 0.3.4
 * Updated to test with more recent versions of Python, NumPy and SciPy
 * Can now compare equality of lazyarrays to numbers and arrays
 
+Release 0.4.0
+=============
+
+* Drop support for Python 2.7
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
 .. _`#4`: https://bitbucket.org/apdavison/lazyarray/issue/4/

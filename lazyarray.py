@@ -6,12 +6,11 @@ class, ``larray``, based on and compatible with NumPy arrays.
 Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2020
 """
 
-from __future__ import division
 import numbers
 import operator
 from copy import deepcopy
 import collections
-from functools import wraps
+from functools import wraps, reduce
 import logging
 
 import numpy
@@ -23,24 +22,7 @@ except ImportError:
     have_scipy = False
 
 
-__version__ = "0.3.4"
-
-# stuff for Python 3 compatibility
-try:
-    long
-except NameError:
-    long = int
-
-try:
-    reduce
-except NameError:
-    from functools import reduce
-
-try:
-    basestring
-except NameError:
-    basestring = str
-
+__version__ = "0.4.0"
 
 logger = logging.getLogger("lazyarray")
 
@@ -85,7 +67,7 @@ def partial_shape(addr, full_shape):
     Calculate the size of the sub-array represented by `addr`
     """
     def size(x, max):
-        if isinstance(x, (int, long, numpy.integer)):
+        if isinstance(x, (int, numpy.integer)):
             return None
         elif isinstance(x, slice):
             y = min(max, x.stop or max)  # slice limits can go past the bounds
@@ -167,7 +149,7 @@ class larray(object):
         """
         Create a new lazy array.
 
-        `value` : may be an int, long, float, bool, NumPy array, iterator,
+        `value` : may be an int, float, bool, NumPy array, iterator,
                   generator or a function, `f(i)` or `f(i,j)`, depending on the
                   dimensions of the array.
 
@@ -178,7 +160,7 @@ class larray(object):
 
         self.dtype = dtype
         self.operations = []
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             raise TypeError("An larray cannot be created from a string")
         elif isinstance(value, larray):
             if shape is not None and value.shape is not None:
@@ -290,7 +272,7 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        hom_base = isinstance(self.base_value, (int, long, numpy.integer, float, bool)) \
+        hom_base = isinstance(self.base_value, (int, numpy.integer, float, bool)) \
                    or type(self.base_value) == self.dtype \
                    or (isinstance(self.dtype, type) and isinstance(self.base_value, self.dtype))
         hom_ops = all(obj.is_homogeneous for f, obj in self.operations if isinstance(obj, larray))
@@ -314,7 +296,7 @@ class larray(object):
         self.check_bounds(addr)
 
         def axis_indices(x, max):
-            if isinstance(x, (int, long, numpy.integer)):
+            if isinstance(x, (int, numpy.integer)):
                 return x
             elif isinstance(x, slice):  # need to handle negative values in slice
                 return numpy.arange((x.start or 0),
@@ -369,7 +351,7 @@ class larray(object):
                 base_val = self.base_value
             else:
                 base_val = self._homogeneous_array(addr) * self.base_value
-        elif isinstance(self.base_value, (int, long, numpy.integer, float, bool)):
+        elif isinstance(self.base_value, (int, numpy.integer, float, bool)):
             base_val = self._homogeneous_array(addr) * self.base_value
         elif isinstance(self.base_value, numpy.ndarray):
             base_val = self.base_value[addr]
@@ -408,7 +390,7 @@ class larray(object):
             return hasattr(arr, 'dtype') and arr.dtype == bool
 
         def check_axis(x, size):
-            if isinstance(x, (int, long, numpy.integer)):
+            if isinstance(x, (int, numpy.integer)):
                 lower = upper = x
             elif isinstance(x, slice):
                 lower = x.start or 0
@@ -485,7 +467,7 @@ class larray(object):
                 x = self.base_value
             else:
                 x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
-        elif isinstance(self.base_value, (int, long, numpy.integer, float, bool, numpy.bool_)):
+        elif isinstance(self.base_value, (int, numpy.integer, float, bool, numpy.bool_)):
             x = self.base_value * numpy.ones(self._shape, dtype=self.dtype)
         elif isinstance(self.base_value, numpy.ndarray):
             x = self.base_value
