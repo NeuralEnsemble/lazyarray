@@ -6,7 +6,7 @@ Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2020
 """
 
 from lazyarray import larray, VectorizedIterable, sqrt, partial_shape
-import numpy
+import numpy as np
 from nose.tools import assert_raises, assert_equal, assert_not_equal
 from nose import SkipTest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -25,7 +25,7 @@ class MockRNG(VectorizedIterable):
     def next(self, n):
         s = self.start
         self.start += n * self.delta
-        return s + self.delta * numpy.arange(n)
+        return s + self.delta * np.arange(n)
 
 
 # test larray
@@ -50,19 +50,19 @@ def test_create_with_float():
 def test_create_with_list():
     A = larray([1, 2, 3], shape=(3,))
     assert A.shape == (3,)
-    assert_array_equal(A.evaluate(), numpy.array([1, 2, 3]))
+    assert_array_equal(A.evaluate(), np.array([1, 2, 3]))
 
 
 def test_create_with_array():
-    A = larray(numpy.array([1, 2, 3]), shape=(3,))
+    A = larray(np.array([1, 2, 3]), shape=(3,))
     assert A.shape == (3,)
-    assert_array_equal(A.evaluate(), numpy.array([1, 2, 3]))
+    assert_array_equal(A.evaluate(), np.array([1, 2, 3]))
 
 
 def test_create_with_array_and_dtype():
-    A = larray(numpy.array([1, 2, 3]), shape=(3,), dtype=int)
+    A = larray(np.array([1, 2, 3]), shape=(3,), dtype=int)
     assert A.shape == (3,)
-    assert_array_equal(A.evaluate(), numpy.array([1, 2, 3]))
+    assert_array_equal(A.evaluate(), np.array([1, 2, 3]))
 
 
 def test_create_with_generator():
@@ -73,25 +73,25 @@ def test_create_with_generator():
             i += 1
     A = larray(plusone(), shape=(5, 11))
     assert_array_equal(A.evaluate(),
-                       numpy.arange(55).reshape((5, 11)))
+                       np.arange(55).reshape((5, 11)))
 
 
 def test_create_with_function1D():
     A = larray(lambda i: 99 - i, shape=(3,))
     assert_array_equal(A.evaluate(),
-                       numpy.array([99, 98, 97]))
+                       np.array([99, 98, 97]))
 
 
 def test_create_with_function1D_and_dtype():
     A = larray(lambda i: 99 - i, shape=(3,), dtype=float)
     assert_array_equal(A.evaluate(),
-                       numpy.array([99.0, 98.0, 97.0]))
+                       np.array([99.0, 98.0, 97.0]))
 
 
 def test_create_with_function2D():
     A = larray(lambda i, j: 3 * j - 2 * i, shape=(2, 3))
     assert_array_equal(A.evaluate(),
-                       numpy.array([[0, 3, 6],
+                       np.array([[0, 3, 6],
                                     [-2, 1, 4]]))
 
 
@@ -107,20 +107,20 @@ def test_create_with_larray():
     A = 3 + larray(lambda i: 99 - i, shape=(3,))
     B = larray(A, shape=(3,), dtype=int)
     assert_array_equal(B.evaluate(),
-                       numpy.array([102, 101, 100]))
+                       np.array([102, 101, 100]))
 
 
 ## For sparse matrices
 def test_create_with_sparse_array():
-    row = numpy.array([0, 2, 2, 0, 1, 2])
-    col = numpy.array([0, 0, 1, 2, 2, 2])
-    data = numpy.array([1, 2, 3, 4, 5, 6])
+    row = np.array([0, 2, 2, 0, 1, 2])
+    col = np.array([0, 0, 1, 2, 2, 2])
+    data = np.array([1, 2, 3, 4, 5, 6])
     bsr = larray(bsr_matrix((data, (row, col)), shape=(3, 3))) # For bsr_matrix
     coo = larray(coo_matrix((data, (row, col)), shape=(3, 3))) # For coo_matrix
     csc = larray(csc_matrix((data, (row, col)), shape=(3, 3))) # For csc_matrix
     csr = larray(csr_matrix((data, (row, col)), shape=(3, 3))) # For csr_matrix
-    data_dia = numpy.array([[1, 2, 3, 4]]).repeat(3, axis=0) # For dia_matrix
-    offsets_dia = numpy.array([0, -1, 2]) # For dia_matrix
+    data_dia = np.array([[1, 2, 3, 4]]).repeat(3, axis=0) # For dia_matrix
+    offsets_dia = np.array([0, -1, 2]) # For dia_matrix
     dia = larray(dia_matrix((data_dia, offsets_dia), shape=(4, 4))) # For dia_matrix
     dok = larray(dok_matrix(((row, col)), shape=(3, 3))) # For dok_matrix
     lil = larray(lil_matrix(data, shape=(3, 3))) # For lil_matrix
@@ -195,7 +195,7 @@ def test_create_with_sparse_array():
 #    assert_equal(cols, [5, 5, 5])
 #
 # def test_columnwise_iteration_with_structured_array():
-#    input = numpy.arange(12).reshape((4,3))
+#    input = np.arange(12).reshape((4,3))
 # m = larray(input, shape=(4,3)) # 4 rows, 3 columns
 #    cols = [col for col in m.by_column()]
 #    assert_array_equal(cols[0], input[:,0])
@@ -205,20 +205,20 @@ def test_create_with_sparse_array():
 #    input = lambda i,j: 2*i + j
 #    m = larray(input, shape=(4,3))
 #    cols = [col for col in m.by_column()]
-#    assert_array_equal(cols[0], numpy.array([0, 2, 4, 6]))
-#    assert_array_equal(cols[1], numpy.array([1, 3, 5, 7]))
-#    assert_array_equal(cols[2], numpy.array([2, 4, 6, 8]))
+#    assert_array_equal(cols[0], np.array([0, 2, 4, 6]))
+#    assert_array_equal(cols[1], np.array([1, 3, 5, 7]))
+#    assert_array_equal(cols[2], np.array([2, 4, 6, 8]))
 #
 # def test_columnwise_iteration_with_flat_array_and_mask():
 # m = larray(5, shape=(4,3)) # 4 rows, 3 columns
-#    mask = numpy.array([True, False, True])
+#    mask = np.array([True, False, True])
 #    cols = [col for col in m.by_column(mask=mask)]
 #    assert_equal(cols, [5, 5])
 #
 # def test_columnwise_iteration_with_structured_array_and_mask():
-#    input = numpy.arange(12).reshape((4,3))
+#    input = np.arange(12).reshape((4,3))
 # m = larray(input, shape=(4,3)) # 4 rows, 3 columns
-#    mask = numpy.array([False, True, True])
+#    mask = np.array([False, True, True])
 #    cols = [col for col in m.by_column(mask=mask)]
 #    assert_array_equal(cols[0], input[:,1])
 #    assert_array_equal(cols[1], input[:,2])
@@ -241,11 +241,11 @@ def test_size_related_properties():
 
 def test_evaluate_with_flat_array():
     m = larray(5, shape=(4, 3))
-    assert_array_equal(m.evaluate(), 5 * numpy.ones((4, 3)))
+    assert_array_equal(m.evaluate(), 5 * np.ones((4, 3)))
 
 
 def test_evaluate_with_structured_array():
-    input = numpy.arange(12).reshape((4, 3))
+    input = np.arange(12).reshape((4, 3))
     m = larray(input, shape=(4, 3))
     assert_array_equal(m.evaluate(), input)
 
@@ -254,7 +254,7 @@ def test_evaluate_with_functional_array():
     input = lambda i, j: 2 * i + j
     m = larray(input, shape=(4, 3))
     assert_array_equal(m.evaluate(),
-                       numpy.array([[0, 1, 2],
+                       np.array([[0, 1, 2],
                                     [2, 3, 4],
                                     [4, 5, 6],
                                     [6, 7, 8]]))
@@ -264,7 +264,7 @@ def test_evaluate_with_vectorized_iterable():
     input = MockRNG(0, 1)
     m = larray(input, shape=(7, 3))
     assert_array_equal(m.evaluate(),
-                       numpy.arange(21).reshape((7, 3)))
+                       np.arange(21).reshape((7, 3)))
 
 
 def test_evaluate_twice_with_vectorized_iterable():
@@ -272,9 +272,9 @@ def test_evaluate_twice_with_vectorized_iterable():
     m1 = larray(input, shape=(7, 3)) + 3
     m2 = larray(input, shape=(7, 3)) + 17
     assert_array_equal(m1.evaluate(),
-                       numpy.arange(3, 24).reshape((7, 3)))
+                       np.arange(3, 24).reshape((7, 3)))
     assert_array_equal(m2.evaluate(),
-                       numpy.arange(38, 59).reshape((7, 3)))
+                       np.arange(38, 59).reshape((7, 3)))
 
 
 def test_evaluate_structured_array_size_1_simplify():
@@ -287,7 +287,7 @@ def test_evaluate_structured_array_size_1_simplify():
 def test_iadd_with_flat_array():
     m = larray(5, shape=(4, 3))
     m += 2
-    assert_array_equal(m.evaluate(), 7 * numpy.ones((4, 3)))
+    assert_array_equal(m.evaluate(), 7 * np.ones((4, 3)))
     assert_equal(m.base_value, 5)
     assert_equal(m.evaluate(simplify=True), 7)
 
@@ -307,43 +307,43 @@ def test_lt_with_flat_array():
 
 
 def test_lt_with_structured_array():
-    input = numpy.arange(12).reshape((4, 3))
+    input = np.arange(12).reshape((4, 3))
     m0 = larray(input, shape=(4, 3))
     m1 = m0 < 5
     assert_array_equal(m1.evaluate(simplify=True), input < 5)
 
 
 def test_structured_array_lt_array():
-    input = numpy.arange(12).reshape((4, 3))
+    input = np.arange(12).reshape((4, 3))
     m0 = larray(input, shape=(4, 3))
-    comparison = 5 * numpy.ones((4, 3))
+    comparison = 5 * np.ones((4, 3))
     m1 = m0 < comparison
     assert_array_equal(m1.evaluate(simplify=True), input < comparison)
 
 
 def test_rsub_with_structured_array():
-    m = larray(numpy.arange(12).reshape((4, 3)))
+    m = larray(np.arange(12).reshape((4, 3)))
     assert_array_equal((11 - m).evaluate(),
-                       numpy.arange(11, -1, -1).reshape((4, 3)))
+                       np.arange(11, -1, -1).reshape((4, 3)))
 
 
 def test_inplace_mul_with_structured_array():
     m = larray((3 * x for x in range(4)), shape=(4,))
     m *= 7
     assert_array_equal(m.evaluate(),
-                       numpy.arange(0, 84, 21))
+                       np.arange(0, 84, 21))
 
 
 def test_abs_with_structured_array():
     m = larray(lambda i, j: i - j, shape=(3, 4))
     assert_array_equal(abs(m).evaluate(),
-                       numpy.array([[0, 1, 2, 3],
+                       np.array([[0, 1, 2, 3],
                                     [1, 0, 1, 2],
                                     [2, 1, 0, 1]]))
 
 
 def test_multiple_operations_with_structured_array():
-    input = numpy.arange(12).reshape((4, 3))
+    input = np.arange(12).reshape((4, 3))
     m0 = larray(input, shape=(4, 3))
     m1 = (m0 + 2) < 5
     m2 = (m0 < 5) + 2
@@ -356,16 +356,16 @@ def test_multiple_operations_with_functional_array():
     m = larray(lambda i: i, shape=(5,))
     m0 = m / 100.0
     m1 = 0.2 + m0
-    assert_array_almost_equal(m0.evaluate(), numpy.array([0.0, 0.01, 0.02, 0.03, 0.04]), decimal=12)
-    assert_array_almost_equal(m1.evaluate(), numpy.array([0.20, 0.21, 0.22, 0.23, 0.24]), decimal=12)
+    assert_array_almost_equal(m0.evaluate(), np.array([0.0, 0.01, 0.02, 0.03, 0.04]), decimal=12)
+    assert_array_almost_equal(m1.evaluate(), np.array([0.20, 0.21, 0.22, 0.23, 0.24]), decimal=12)
     assert_equal(m1[0], 0.2)
 
 
 def test_operations_combining_constant_and_structured_arrays():
     m0 = larray(10, shape=(5,))
-    m1 = larray(numpy.arange(5))
+    m1 = larray(np.arange(5))
     m2 = m0 + m1
-    assert_array_almost_equal(m2.evaluate(), numpy.arange(10, 15))
+    assert_array_almost_equal(m2.evaluate(), np.arange(10, 15))
 
 
 def test_apply_function_to_constant_array():
@@ -381,7 +381,7 @@ def test_apply_function_to_constant_array():
 
 def test_apply_function_to_structured_array():
     f = lambda m: 2 * m + 3
-    input = numpy.arange(12).reshape((4, 3))
+    input = np.arange(12).reshape((4, 3))
     m0 = larray(input, shape=(4, 3))
     m1 = f(m0)
     assert isinstance(m1, larray)
@@ -394,7 +394,7 @@ def test_apply_function_to_functional_array():
     f = lambda m: 2 * m + 3
     m1 = f(m0)
     assert_array_equal(m1.evaluate(),
-                       numpy.array([[3, 5, 7],
+                       np.array([[3, 5, 7],
                                     [7, 9, 11],
                                     [11, 13, 15],
                                     [15, 17, 19]]))
@@ -432,7 +432,7 @@ def test_getitem_from_1D_constant_array():
 def test_getitem__with_slice_from_constant_array():
     m = larray(3, shape=(4, 3))
     assert_array_equal(m[:3, 0],
-                       numpy.array([3, 3, 3]))
+                       np.array([3, 3, 3]))
 
 
 def test_getitem__with_thinslice_from_constant_array():
@@ -443,31 +443,31 @@ def test_getitem__with_thinslice_from_constant_array():
 def test_getitem__with_mask_from_constant_array():
     m = larray(3, shape=(4, 3))
     assert_array_equal(m[1, (0, 2)],
-                       numpy.array([3, 3]))
+                       np.array([3, 3]))
 
 
 def test_getitem_with_numpy_integers_from_2D_constant_array():
-    if not hasattr(numpy, "int64"):
+    if not hasattr(np, "int64"):
         raise SkipTest("test requires a 64-bit system")
     m = larray(3, shape=(4, 3))
-    assert m[numpy.int64(0), numpy.int32(0)] == 3
+    assert m[np.int64(0), np.int32(0)] == 3
 
 
 def test_getslice_from_constant_array():
     m = larray(3, shape=(4, 3))
     assert_array_equal(m[:2],
-                       numpy.array([[3, 3, 3],
+                       np.array([[3, 3, 3],
                                     [3, 3, 3]]))
 
 
 def test_getslice_past_bounds_from_constant_array():
     m = larray(3, shape=(5,))
     assert_array_equal(m[2:10],
-                       numpy.array([3, 3, 3]))
+                       np.array([3, 3, 3]))
 
 
 def test_getitem_from_structured_array():
-    m = larray(3 * numpy.ones((4, 3)), shape=(4, 3))
+    m = larray(3 * np.ones((4, 3)), shape=(4, 3))
     assert m[0, 0] == m[3, 2] == m[-1, 2] == m[-4, 2] == m[2, -3] == 3
     assert_raises(IndexError, m.__getitem__, (4, 0))
     assert_raises(IndexError, m.__getitem__, (2, -4))
@@ -492,7 +492,7 @@ def test_getitem_from_vectorized_iterable():
     input = MockRNG(0, 1)
     m = larray(input, shape=(7,))
     m3 = m[3]
-    assert isinstance(m3, (int, numpy.integer))
+    assert isinstance(m3, (int, np.integer))
     assert_equal(m3, 0)
     assert_equal(m[0], 1)
 
@@ -500,7 +500,7 @@ def test_getitem_from_vectorized_iterable():
 def test_getitem_with_slice_from_2D_functional_array():
     m = larray(lambda i, j: 2 * i + j, shape=(6, 5))
     assert_array_equal(m[2:5, 3:],
-                       numpy.array([[7, 8],
+                       np.array([[7, 8],
                                     [9, 10],
                                     [11, 12]]))
 
@@ -510,34 +510,34 @@ def test_getitem_with_slice_from_2D_functional_array_2():
         return i * i + 2 * i * j + 3
     m = larray(test_function, shape=(3, 15))
     assert_array_equal(m[:, 3:14:3],
-                       numpy.fromfunction(test_function, shape=(3, 15))[:, 3:14:3])
+                       np.fromfunction(test_function, shape=(3, 15))[:, 3:14:3])
 
 
 def test_getitem_with_mask_from_2D_functional_array():
-    a = numpy.arange(30).reshape((6, 5))
+    a = np.arange(30).reshape((6, 5))
     m = larray(lambda i, j: 5 * i + j, shape=(6, 5))
     assert_array_equal(a[[2, 3], [3, 4]],
-                       numpy.array([13, 19]))
+                       np.array([13, 19]))
     assert_array_equal(m[[2, 3], [3, 4]],
-                       numpy.array([13, 19]))
+                       np.array([13, 19]))
 
 
 def test_getitem_with_mask_from_1D_functional_array():
-    m = larray(lambda i: numpy.sqrt(i), shape=(10,))
+    m = larray(lambda i: np.sqrt(i), shape=(10,))
     assert_array_equal(m[[0, 1, 4, 9]],
-                       numpy.array([0, 1, 2, 3]))
+                       np.array([0, 1, 2, 3]))
 
 
 def test_getitem_with_boolean_mask_from_1D_functional_array():
-    m = larray(lambda i: numpy.sqrt(i), shape=(10,))
-    assert_array_equal(m[numpy.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 1], dtype=bool)],
-                       numpy.array([0, 1, 2, 3]))
+    m = larray(lambda i: np.sqrt(i), shape=(10,))
+    assert_array_equal(m[np.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 1], dtype=bool)],
+                       np.array([0, 1, 2, 3]))
 
 
 def test_getslice_from_2D_functional_array():
     m = larray(lambda i, j: 2 * i + j, shape=(6, 5))
     assert_array_equal(m[1:3],
-                       numpy.array([[2, 3, 4, 5, 6],
+                       np.array([[2, 3, 4, 5, 6],
                                     [4, 5, 6, 7, 8]]))
 
 
@@ -547,10 +547,10 @@ def test_getitem_from_iterator_array():
 
 
 def test_getitem_from_array_with_operations():
-    a1 = numpy.array([[1, 3, 5], [7, 9, 11]])
+    a1 = np.array([[1, 3, 5], [7, 9, 11]])
     m1 = larray(a1)
-    f = lambda i, j: numpy.sqrt(i * i + j * j)
-    a2 = numpy.fromfunction(f, shape=(2, 3))
+    f = lambda i, j: np.sqrt(i * i + j * j)
+    a2 = np.fromfunction(f, shape=(2, 3))
     m2 = larray(f, shape=(2, 3))
     a3 = 3 * a1 + a2
     m3 = 3 * m1 + m2
@@ -582,11 +582,11 @@ def test_check_bounds_with_invalid_address2():
 
 def test_partially_evaluate_constant_array_with_one_element():
     m = larray(3, shape=(1,))
-    a = 3 * numpy.ones((1,))
+    a = 3 * np.ones((1,))
     m1 = larray(3, shape=(1, 1))
-    a1 = 3 * numpy.ones((1, 1))
+    a1 = 3 * np.ones((1, 1))
     m2 = larray(3, shape=(1, 1, 1))
-    a2 = 3 * numpy.ones((1, 1, 1))
+    a2 = 3 * np.ones((1, 1, 1))
     assert_equal(a[0], m[0])
     assert_equal(a.shape, m.shape)
     assert_equal(a[:].shape, m[:].shape)
@@ -603,9 +603,9 @@ def test_partially_evaluate_constant_array_with_one_element():
 
 def test_partially_evaluate_constant_array_with_boolean_index():
     m = larray(3, shape=(4, 5))
-    a = 3 * numpy.ones((4, 5))
-    addr_bool = numpy.array([True, True, False, False, True])
-    addr_int = numpy.array([0, 1, 4])
+    a = 3 * np.ones((4, 5))
+    addr_bool = np.array([True, True, False, False, True])
+    addr_int = np.array([0, 1, 4])
     assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
     assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
     assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
@@ -613,37 +613,37 @@ def test_partially_evaluate_constant_array_with_boolean_index():
 
 def test_partially_evaluate_constant_array_with_all_boolean_indices_false():
     m = larray(3, shape=(3,))
-    a = 3 * numpy.ones((3,))
-    addr_bool = numpy.array([False, False, False])
+    a = 3 * np.ones((3,))
+    addr_bool = np.array([False, False, False])
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
 
 
 def test_partially_evaluate_constant_array_with_only_one_boolean_indice_true():
     m = larray(3, shape=(3,))
-    a = 3 * numpy.ones((3,))
-    addr_bool = numpy.array([False, True, False])
+    a = 3 * np.ones((3,))
+    addr_bool = np.array([False, True, False])
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
     assert_equal(m[addr_bool][0], a[0])
 
 
 def test_partially_evaluate_constant_array_with_boolean_indice_as_random_valid_ndarray():
     m = larray(3, shape=(3,))
-    a = 3 * numpy.ones((3,))
-    addr_bool = numpy.random.rand(3) > 0.5
+    a = 3 * np.ones((3,))
+    addr_bool = np.random.rand(3) > 0.5
     while not addr_bool.any():
         # random array, but not [False, False, False]
-        addr_bool = numpy.random.rand(3) > 0.5
+        addr_bool = np.random.rand(3) > 0.5
     assert_equal(a[addr_bool].shape, m[addr_bool].shape)
     assert_equal(m[addr_bool][0], a[addr_bool][0])
 
 
 def test_partially_evaluate_constant_array_size_one_with_boolean_index_true():
     m = larray(3, shape=(1,))
-    a = numpy.array([3])
-    addr_bool = numpy.array([True])
+    a = np.array([3])
+    addr_bool = np.array([True])
     m1 = larray(3, shape=(1, 1))
-    a1 = 3 * numpy.ones((1, 1))
-    addr_bool1 = numpy.array([[True]], ndmin=2)
+    a1 = 3 * np.ones((1, 1))
+    addr_bool1 = np.array([[True]], ndmin=2)
     assert_equal(m[addr_bool][0], a[0])
     assert_equal(m[addr_bool], a[addr_bool])
     assert_equal(m[addr_bool].shape, a[addr_bool].shape)
@@ -653,8 +653,8 @@ def test_partially_evaluate_constant_array_size_one_with_boolean_index_true():
 
 def test_partially_evaluate_constant_array_size_two_with_boolean_index_true():
     m2 = larray(3, shape=(1, 2))
-    a2 = 3 * numpy.ones((1, 2))
-    addr_bool2 = numpy.ones((1, 2), dtype=bool)
+    a2 = 3 * np.ones((1, 2))
+    addr_bool2 = np.ones((1, 2), dtype=bool)
     assert_equal(m2[addr_bool2][0], a2[addr_bool2][0])
     assert_equal(m2[addr_bool2].shape, a2[addr_bool2].shape)
 
@@ -662,28 +662,28 @@ def test_partially_evaluate_constant_array_size_two_with_boolean_index_true():
 def test_partially_evaluate_constant_array_size_one_with_boolean_index_false():
     m = larray(3, shape=(1,))
     m1 = larray(3, shape=(1, 1))
-    a = numpy.array([3])
-    a1 = numpy.array([[3]], ndmin=2)
-    addr_bool = numpy.array([False])
-    addr_bool1 = numpy.array([[False]], ndmin=2)
-    addr_bool2 = numpy.array([False])
+    a = np.array([3])
+    a1 = np.array([[3]], ndmin=2)
+    addr_bool = np.array([False])
+    addr_bool1 = np.array([[False]], ndmin=2)
+    addr_bool2 = np.array([False])
     assert_equal(m[addr_bool].shape, a[addr_bool].shape)
     assert_equal(m1[addr_bool1].shape, a1[addr_bool1].shape)
 
 
 def test_partially_evaluate_constant_array_size_with_empty_boolean_index():
     m = larray(3, shape=(1,))
-    a = numpy.array([3])
-    addr_bool = numpy.array([], dtype='bool')
+    a = np.array([3])
+    addr_bool = np.array([], dtype='bool')
     assert_equal(m[addr_bool].shape, a[addr_bool].shape)
     assert_equal(m[addr_bool].shape, (0,))
 
 
 def test_partially_evaluate_functional_array_with_boolean_index():
     m = larray(lambda i, j: 5 * i + j, shape=(4, 5))
-    a = numpy.arange(20.0).reshape((4, 5))
-    addr_bool = numpy.array([True, True, False, False, True])
-    addr_int = numpy.array([0, 1, 4])
+    a = np.arange(20.0).reshape((4, 5))
+    addr_bool = np.array([True, True, False, False, True])
+    addr_int = np.array([0, 1, 4])
     assert_equal(a[::2, addr_bool].shape, a[::2, addr_int].shape)
     assert_equal(a[::2, addr_int].shape, m[::2, addr_int].shape)
     assert_equal(a[::2, addr_bool].shape, m[::2, addr_bool].shape)
@@ -693,7 +693,7 @@ def test_getslice_with_vectorized_iterable():
     input = MockRNG(0, 1)
     m = larray(input, shape=(7, 3))
     assert_array_equal(m[::2, (0, 2)],
-                       numpy.arange(8).reshape((4, 2)))
+                       np.arange(8).reshape((4, 2)))
 
 
 def test_equality_with_lazyarray():
@@ -715,7 +715,7 @@ def test_equality_with_number():
 
 def test_equality_with_array():
     m1 = larray(42.0, shape=(4, 5))
-    target = 42.0 * numpy.ones((4, 5))
+    target = 42.0 * np.ones((4, 5))
     assert_raises(TypeError, m1.__eq__, target)
 
 
@@ -733,27 +733,27 @@ def test_deepcopy_with_ufunc():
     m1 = sqrt(larray([x ** 2 for x in range(5)]))
     m2 = deepcopy(m1)
     m1.base_value[0] = 49
-    assert_array_equal(m1.evaluate(), numpy.array([7, 1, 2, 3, 4]))
-    assert_array_equal(m2.evaluate(), numpy.array([0, 1, 2, 3, 4]))
+    assert_array_equal(m1.evaluate(), np.array([7, 1, 2, 3, 4]))
+    assert_array_equal(m2.evaluate(), np.array([0, 1, 2, 3, 4]))
 
 
 def test_set_shape():
     m = larray(42) + larray(lambda i: 3 * i)
     assert_equal(m.shape, None)
     m.shape = (5,)
-    assert_array_equal(m.evaluate(), numpy.array([42, 45, 48, 51, 54]))
+    assert_array_equal(m.evaluate(), np.array([42, 45, 48, 51, 54]))
 
 
 def test_call():
-    A = larray(numpy.array([1, 2, 3]), shape=(3,)) - 1
+    A = larray(np.array([1, 2, 3]), shape=(3,)) - 1
     B = 0.5 * larray(lambda i: 2 * i, shape=(3,))
     C = B(A)
-    assert_array_equal(C.evaluate(), numpy.array([0, 1, 2]))
-    assert_array_equal(A.evaluate(), numpy.array([0, 1, 2]))  # A should be unchanged
+    assert_array_equal(C.evaluate(), np.array([0, 1, 2]))
+    assert_array_equal(A.evaluate(), np.array([0, 1, 2]))  # A should be unchanged
 
 
 def test_call2():
-    positions = numpy.array(
+    positions = np.array(
         [[0.,  2.,  4.,  6.,  8.],
          [0.,  0.,  0.,  0.,  0.],
          [0.,  0.,  0.,  0.,  0.]])
@@ -764,8 +764,8 @@ def test_call2():
     def distances(A, B):
         d = A - B
         d **= 2
-        d = numpy.sum(d, axis=-1)
-        numpy.sqrt(d, d)
+        d = np.sum(d, axis=-1)
+        np.sqrt(d, d)
         return d
 
     def distance_generator(f, g):
@@ -777,7 +777,7 @@ def test_call2():
     f_delay = 1000 * larray(lambda d: 0.1 * (1 + d), shape=(4, 5))
     assert_array_almost_equal(
         f_delay(distance_map).evaluate(),
-        numpy.array([[100, 300, 500, 700, 900],
+        np.array([[100, 300, 500, 700, 900],
                      [300, 100, 300, 500, 700],
                      [500, 300, 100, 300, 500],
                      [700, 500, 300, 100, 300]], dtype=float),
@@ -785,7 +785,7 @@ def test_call2():
     # repeat, should be idempotent
     assert_array_almost_equal(
         f_delay(distance_map).evaluate(),
-        numpy.array([[100, 300, 500, 700, 900],
+        np.array([[100, 300, 500, 700, 900],
                      [300, 100, 300, 500, 700],
                      [500, 300, 100, 300, 500],
                      [700, 500, 300, 100, 300]], dtype=float),
@@ -794,16 +794,16 @@ def test_call2():
 
 def test__issue4():
     # In order to avoid the errors associated with version changes of numpy, mask1 and mask2 no longer contain boolean values ​​but integer values
-    a = numpy.arange(12).reshape((4, 3))
-    b = larray(numpy.arange(12).reshape((4, 3)))
+    a = np.arange(12).reshape((4, 3))
+    b = larray(np.arange(12).reshape((4, 3)))
     mask1 = (slice(None), int(True))
-    mask2 = (slice(None), numpy.array([int(True)]))
+    mask2 = (slice(None), np.array([int(True)]))
     assert_equal(b[mask1].shape, partial_shape(mask1, b.shape), a[mask1].shape)
     assert_equal(b[mask2].shape, partial_shape(mask2, b.shape), a[mask2].shape)
 
 
 def test__issue3():
-    a = numpy.arange(12).reshape((4, 3))
+    a = np.arange(12).reshape((4, 3))
     b = larray(a)
     c = larray(lambda i, j: 3*i + j, shape=(4, 3))
     assert_array_equal(a[(1, 3), :][:, (0, 2)], b[(1, 3), :][:, (0, 2)])
@@ -813,7 +813,7 @@ def test__issue3():
 
 
 def test_partial_shape():
-    a = numpy.arange(12).reshape((4, 3))
+    a = np.arange(12).reshape((4, 3))
     test_cases = [
         (slice(None), (4, 3)),
         ((slice(None), slice(None)), (4, 3)),
@@ -821,27 +821,27 @@ def test_partial_shape():
         (1, (3,)),
         ((1, slice(None)), (3,)),
         ([0, 2, 3], (3, 3)),
-        (numpy.array([0, 2, 3]), (3, 3)),
-        ((numpy.array([0, 2, 3]), slice(None)), (3, 3)),
-        (numpy.array([True, False, True, True]), (3, 3)),
-        #(numpy.array([True, False]), (1, 3)),  # not valid with NumPy 1.13
-        (numpy.array([[True, False, False], [False, False, False], [True, True, False], [False, True, False]]), (4,)),
-        #(numpy.array([[True, False, False], [False, False, False], [True, True, False]]), (3,)),  # not valid with NumPy 1.13
+        (np.array([0, 2, 3]), (3, 3)),
+        ((np.array([0, 2, 3]), slice(None)), (3, 3)),
+        (np.array([True, False, True, True]), (3, 3)),
+        #(np.array([True, False]), (1, 3)),  # not valid with NumPy 1.13
+        (np.array([[True, False, False], [False, False, False], [True, True, False], [False, True, False]]), (4,)),
+        #(np.array([[True, False, False], [False, False, False], [True, True, False]]), (3,)),  # not valid with NumPy 1.13
         ((3, 1), tuple()),
         ((slice(None), 1), (4,)),
         ((slice(None), slice(1, None, 3)), (4, 1)),
-        ((numpy.array([0, 3]), 2), (2,)),
-        ((numpy.array([0, 3]), numpy.array([1, 2])), (2,)),
-        ((slice(None), numpy.array([2])), (4, 1)),
+        ((np.array([0, 3]), 2), (2,)),
+        ((np.array([0, 3]), np.array([1, 2])), (2,)),
+        ((slice(None), np.array([2])), (4, 1)),
         (((1, 3), (0, 2)), (2,)),
-        (numpy.array([], bool), (0, 3)),
+        (np.array([], bool), (0, 3)),
     ]
     for mask, expected_shape in test_cases:
         assert_equal(partial_shape(mask, a.shape), a[mask].shape)
         assert_equal(partial_shape(mask, a.shape), expected_shape)
-    b = numpy.arange(5)
+    b = np.arange(5)
     test_cases = [
-        (numpy.arange(5), (5,))
+        (np.arange(5), (5,))
     ]
     for mask, expected_shape in test_cases:
         assert_equal(partial_shape(mask, b.shape), b[mask].shape)
@@ -849,7 +849,7 @@ def test_partial_shape():
 
 def test_is_homogeneous():
     m0 = larray(10, shape=(5,))
-    m1 = larray(numpy.arange(1, 6))
+    m1 = larray(np.arange(1, 6))
     m2 = m0 + m1
     m3 = 9 + m0 / m1
     assert m0.is_homogeneous
