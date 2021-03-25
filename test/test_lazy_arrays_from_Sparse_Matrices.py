@@ -1,6 +1,6 @@
-# Support creating lazy arrays from SciPy sparse matrices 
+# Support creating lazy arrays from SciPy sparse matrices
 #
-# 1 program for the 7 sparse matrices classes : 
+# 1 program for the 7 sparse matrices classes :
 #
 # csc_matrix(arg1[, shape, dtype, copy])	            Compressed Sparse Column matrix
 # csr_matrix(arg1[, shape, dtype, copy])	            Compressed Sparse Row matrix
@@ -14,7 +14,7 @@
 
 import numpy as np
 from lazyarray import larray
-from scipy import sparse 
+from scipy import sparse
 import random
 
 
@@ -52,14 +52,14 @@ r = random.randint(-100, 100)
 #print "n =", n
 #print "p =", p
 #print "q  =", q
-#print "r =", r    
+#print "r =", r
 
 
 ##############################################################
 # Definition of an array
 ##############################################################
 
-def test_function_array_general():  
+def test_function_array_general():
     A = np.array([[i, j, k], [l, m, n], [p, q, r]])
     #print "A ="
     #print A
@@ -112,9 +112,9 @@ def sparse_dia_matrices():
     #print dia
     return dia
 
-    
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
 
 
 ##############################################################
@@ -124,10 +124,10 @@ if __name__ == "__main__":
 ##############################################################
 
     #print "Array general ="
-    test_function_array_general()    
+    test_function_array_general()
     #print "Array ="
     #print test_function_array_general()
-    
+
 #    print "----"
 
 #    print "Sparse array csc general ="
@@ -174,18 +174,18 @@ if __name__ == "__main__":
 
 
 #print "----------------------------------------------------------------------"
- 
+
 
  ##############################################################
  # Call the sparse matrices
  # Create a lazy array from sparse matrices
  ##############################################################
- 
- 
+
+
 Array_csc_matrices = sparse_csc_matrices().toarray()
 #print "Array csc matrices ="
 #print Array_csc_matrices
-  
+
 Array_csr_matrices = sparse_csr_matrices().toarray()
 #print "Array csr matrices ="
 #print Array_csr_matrices
@@ -197,7 +197,7 @@ Array_bsr_matrices = sparse_bsr_matrices().toarray()
 Array_lil_matrices = sparse_lil_matrices().toarray()
 #print "Array lil matrices ="
 #print Array_lil_matrices
-    
+
 Array_dok_matrices = sparse_dok_matrices().toarray()
 #print "Array dok matrices ="
 #print Array_dok_matrices

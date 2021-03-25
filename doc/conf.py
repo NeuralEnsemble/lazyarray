@@ -261,5 +261,5 @@ epub_copyright = u'2012-2020, Andrew P. Davison, Joël Chavas and Elodie Legoué
 
 doctest_global_setup = """
 from lazyarray import larray
-import numpy
+import numpy as np
 """
