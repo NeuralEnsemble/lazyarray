@@ -4,7 +4,7 @@ Unit tests for ``larray``-compatible ufuncs
 Copyright Andrew P. Davison, 2012-2017
 """
 
-from lazyarray import larray, sqrt, cos
+from lazyarray import larray, sqrt, cos, power
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -42,3 +42,9 @@ def test_cos_from_generator():
                               np.array([[1.0, 0.0],
                                            [-1.0, 0.0]]),
                               decimal=15)
+
+
+def testpower_from_array():
+    A = larray(np.array([1, 4, 9, 16, 25]))
+    assert_array_equal(power(A, 0.5).evaluate(),
+                       np.arange(1, 6))
