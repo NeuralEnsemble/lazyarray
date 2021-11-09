@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='lazyarray',
-    version='0.5.0.dev',
+    version='0.5.0',
     py_modules=['lazyarray'],
     license='Modified BSD',
     author="Andrew P. Davison",
