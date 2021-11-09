@@ -554,6 +554,15 @@ class larray(object):
     __abs__ = lazy_unary_operation('abs')
 
 
+class VectorizedIterable(object):
+    """
+    Base class for any class which has a method `next(n)`, i.e., where you
+    can choose how many values to return rather than just returning one at a
+    time.
+    """
+    pass
+
+
 def _build_ufunc(func):
     """Return a ufunc that works with lazy arrays"""
     def larray_compatible_ufunc(x):
@@ -566,18 +575,28 @@ def _build_ufunc(func):
     return larray_compatible_ufunc
 
 
-class VectorizedIterable(object):
-    """
-    Base class for any class which has a method `next(n)`, i.e., where you
-    can choose how many values to return rather than just returning one at a
-    time.
-    """
-    pass
+def _build_ufunc_2nd_arg(func):
+    """Return a ufunc taking a second, non-array argument, that works with lazy arrays"""
+    def larray_compatible_ufunc2(x1, x2):
+        if not isinstance(x2, numbers.Number):
+            raise TypeError("lazyarry ufuncs do not accept an array as the second argument")
+        if isinstance(x1, larray):
+            def partial(x):
+                return func(x, x2)
+            y = deepcopy(x1)
+            y.apply(partial)
+            return y
+        else:
+            return func(x1, x2)
+    return larray_compatible_ufunc2
 
 
 # build lazy-array compatible versions of NumPy ufuncs
 namespace = globals()
 for name in dir(np):
     obj = getattr(np, name)
-    if isinstance(obj, np.ufunc):
-        namespace[name] = _build_ufunc(obj)
+    if isinstance(obj, np.ufunc) and name not in namespace:
+        if name in ("power", "fmod", "arctan2, hypot, ldexp, maximum, minimum"):
+            namespace[name] = _build_ufunc_2nd_arg(obj)
+        else:
+            namespace[name] = _build_ufunc(obj)
