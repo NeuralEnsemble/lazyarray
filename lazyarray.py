@@ -16,13 +16,12 @@ import logging
 import numpy as np
 try:
     from scipy import sparse
-    from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
     have_scipy = True
 except ImportError:
     have_scipy = False
 
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 logger = logging.getLogger("lazyarray")
 
@@ -132,7 +131,7 @@ def is_array_like(value):
     # False for numbers, generators, functions, iterators
     if not isinstance(value, collections.Sized):
         return False
-    if sparse.issparse(value):
+    if have_scipy and sparse.issparse(value):
         return True
     if isinstance(value, collections.Mapping):
         # because we may wish to have lazy arrays in which each
