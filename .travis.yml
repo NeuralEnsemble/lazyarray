@@ -22,6 +22,6 @@ matrix:
 install:
   - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION" coverage coveralls pytest pytest-cov
 script:
-  - pytest --cov=lazyarray -v -x
+  - pytest --cov=lazyarray -v
 after_success:
   - coveralls

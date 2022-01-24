@@ -6,3 +6,4 @@ lazyarray.egg-info/
 test/__pycache__/
 MANIFEST
 dist/
+doc/_build

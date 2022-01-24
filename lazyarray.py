@@ -3,7 +3,7 @@
 lazyarray is a Python package that provides a lazily-evaluated numerical array
 class, ``larray``, based on and compatible with NumPy arrays.
 
-Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2020
+Copyright Andrew P. Davison, Joël Chavas, Elodie Legouée (CNRS) and Ankur Sinha, 2012-2022
 """
 
 import numbers
@@ -28,8 +28,8 @@ except ImportError:
     from collections import Mapping
     from collections import Iterator
 
-    
-__version__ = "0.5.1"
+
+__version__ = "0.5.2"
 
 logger = logging.getLogger("lazyarray")
 

@@ -21,19 +21,19 @@ to have administrator privileges on the machine you are installing on).
 
 To download and install manually, download:
 
-    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.5.1.tar.gz
+    https://pypi.python.org/packages/source/l/lazyarray/lazyarray-0.5.2.tar.gz
 
 Then::
 
-    $ tar xzf lazyarray-0.5.1.tar.gz
-    $ cd lazyarray-0.5.1
+    $ tar xzf lazyarray-0.5.2.tar.gz
+    $ cd lazyarray-0.5.2
     $ python setup.py install
 
 or::
 
     $ python3 setup.py install
 
-depending on which version of Python you are using.
+depending on what your Python interpreter is named.
 
 
 Installing from source
