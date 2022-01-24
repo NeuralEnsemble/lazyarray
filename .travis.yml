@@ -1,23 +1,24 @@
+dist: focal
 language: python
 sudo: false
 python:
-  - 3.4
-  - 3.6
-  - 3.9
+  - "3.6"
+  - "3.9"
+  - "3.10"
 env:
-  - NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.17.1"
   - NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
   - NUMPY_VERSION="1.19.4" SCIPY_VERSION="1.5.4"
+  - NUMPY_VERSION="1.22.1" SCIPY_VERSION="1.7.3"
 matrix:
     exclude:
-    - python: 3.4
-      env: NUMPY_VERSION="1.19.4" SCIPY_VERSION="1.5.4"
-    - python: 3.6
-      env: NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.17.1"
-    - python: 3.9
-      env: NUMPY_VERSION="1.12.1" SCIPY_VERSION="0.17.1"
-    - python: 3.9
+    - python: "3.6"
+      env: NUMPY_VERSION="1.22.1" SCIPY_VERSION="1.7.3"
+    - python: "3.9"
       env: NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
+    - python: "3.10"
+      env: NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
+    - python: "3.10"
+      env: NUMPY_VERSION="1.19.4" SCIPY_VERSION="1.5.4"
 install:
   - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION" coverage coveralls pytest pytest-cov
 script:

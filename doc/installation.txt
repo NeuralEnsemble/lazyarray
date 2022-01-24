@@ -5,9 +5,9 @@ Installation
 Dependencies
 ============
 
-    * Python >= 3.4
-    * numpy_ >= 1.12
-    * (optional) scipy_ >= 0.17
+    * Python >= 3.6
+    * numpy_ >= 1.13
+    * (optional) scipy_ >= 0.19
 
 Installing from the Python Package Index
 ========================================
