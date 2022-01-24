@@ -13,7 +13,7 @@ setup(
     description="a Python package that provides a lazily-evaluated numerical array class, larray, based on and compatible with NumPy arrays.",
     long_description=open('README.rst').read(),
     install_requires=[
-        "numpy >= 1.8",
+        "numpy >= 1.13",
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

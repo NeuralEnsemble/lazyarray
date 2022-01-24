@@ -9,11 +9,11 @@ Testing
 
 In the `test` sub-directory, run::
 
-    $ nosetests
-    
+    $ pytest
+
 To see how well the tests cover the code base, run::
 
-    $ nosetests --with-coverage --cover-package=lazyarray --cover-erase --cover-html
+    $ pytest --cov=lazyarray --cov-report html --cov-report term-missing
 
 
 Making a release
@@ -21,7 +21,7 @@ Making a release
 
 * Update the version numbers in setup.py, lazyarray.py, doc/conf.py and doc/installation.txt
 * Update changelog.txt
-* Run all the tests with both Python 2 and Python 3
+* Run all the tests with Python 3
 * python setup.py sdist upload
 * Update the download link in doc/installation.txt
 * Commit the changes, tag with release number, push to Github
