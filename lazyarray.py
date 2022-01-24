@@ -15,11 +15,9 @@ import logging
 import numpy as np
 try:
     from scipy import sparse
-    from scipy.sparse import bsr_matrix, coo_matrix, csc_matrix, csr_matrix, dia_matrix, dok_matrix, lil_matrix
     have_scipy = True
 except ImportError:
     have_scipy = False
-
 
 try:
     from collections.abc import Sized
@@ -30,7 +28,8 @@ except ImportError:
     from collections import Mapping
     from collections import Iterator
 
-__version__ = "0.4.0"
+    
+__version__ = "0.5.1"
 
 logger = logging.getLogger("lazyarray")
 
@@ -140,7 +139,7 @@ def is_array_like(value):
     # False for numbers, generators, functions, iterators
     if not isinstance(value, Sized):
         return False
-    if sparse.issparse(value):
+    if have_scipy and sparse.issparse(value):
         return True
     if isinstance(value, Mapping):
         # because we may wish to have lazy arrays in which each
@@ -562,6 +561,15 @@ class larray(object):
     __abs__ = lazy_unary_operation('abs')
 
 
+class VectorizedIterable(object):
+    """
+    Base class for any class which has a method `next(n)`, i.e., where you
+    can choose how many values to return rather than just returning one at a
+    time.
+    """
+    pass
+
+
 def _build_ufunc(func):
     """Return a ufunc that works with lazy arrays"""
     def larray_compatible_ufunc(x):
@@ -574,18 +582,28 @@ def _build_ufunc(func):
     return larray_compatible_ufunc
 
 
-class VectorizedIterable(object):
-    """
-    Base class for any class which has a method `next(n)`, i.e., where you
-    can choose how many values to return rather than just returning one at a
-    time.
-    """
-    pass
+def _build_ufunc_2nd_arg(func):
+    """Return a ufunc taking a second, non-array argument, that works with lazy arrays"""
+    def larray_compatible_ufunc2(x1, x2):
+        if not isinstance(x2, numbers.Number):
+            raise TypeError("lazyarry ufuncs do not accept an array as the second argument")
+        if isinstance(x1, larray):
+            def partial(x):
+                return func(x, x2)
+            y = deepcopy(x1)
+            y.apply(partial)
+            return y
+        else:
+            return func(x1, x2)
+    return larray_compatible_ufunc2
 
 
 # build lazy-array compatible versions of NumPy ufuncs
 namespace = globals()
 for name in dir(np):
     obj = getattr(np, name)
-    if isinstance(obj, np.ufunc):
-        namespace[name] = _build_ufunc(obj)
+    if isinstance(obj, np.ufunc) and name not in namespace:
+        if name in ("power", "fmod", "arctan2, hypot, ldexp, maximum, minimum"):
+            namespace[name] = _build_ufunc_2nd_arg(obj)
+        else:
+            namespace[name] = _build_ufunc(obj)
