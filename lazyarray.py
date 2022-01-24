@@ -9,7 +9,6 @@ Copyright Andrew P. Davison, Joël Chavas and Elodie Legouée (CNRS), 2012-2020
 import numbers
 import operator
 from copy import deepcopy
-import collections
 from functools import wraps, reduce
 import logging
 
@@ -20,7 +19,16 @@ try:
 except ImportError:
     have_scipy = False
 
+try:
+    from collections.abc import Sized
+    from collections.abc import Mapping
+    from collections.abc import Iterator
+except ImportError:
+    from collections import Sized
+    from collections import Mapping
+    from collections import Iterator
 
+    
 __version__ = "0.5.1"
 
 logger = logging.getLogger("lazyarray")
@@ -71,7 +79,7 @@ def partial_shape(addr, full_shape):
         elif isinstance(x, slice):
             y = min(max, x.stop or max)  # slice limits can go past the bounds
             return 1 + (y - (x.start or 0) - 1) // (x.step or 1)
-        elif isinstance(x, collections.Sized):
+        elif isinstance(x, Sized):
             if hasattr(x, 'dtype') and x.dtype == bool:
                 return x.sum()
             else:
@@ -82,7 +90,7 @@ def partial_shape(addr, full_shape):
     addr = full_address(addr, full_shape)
     if isinstance(addr, np.ndarray) and addr.dtype == bool:
         return (addr.sum(),)
-    elif all(isinstance(x, collections.Sized) for x in addr):
+    elif all(isinstance(x, Sized) for x in addr):
         return (len(addr[0]),)
     else:
         shape = [size(x, max) for (x, max) in zip(addr, full_shape)]
@@ -129,11 +137,11 @@ def lazy_unary_operation(name):
 
 def is_array_like(value):
     # False for numbers, generators, functions, iterators
-    if not isinstance(value, collections.Sized):
+    if not isinstance(value, Sized):
         return False
     if have_scipy and sparse.issparse(value):
         return True
-    if isinstance(value, collections.Mapping):
+    if isinstance(value, Mapping):
         # because we may wish to have lazy arrays in which each
         # item is a dict, for example
         return False
@@ -321,7 +329,7 @@ class larray(object):
                                     (x.stop or max),
                                     (x.step or 1),
                                     dtype=int)
-            elif isinstance(x, collections.Sized):
+            elif isinstance(x, Sized):
                 if hasattr(x, 'dtype') and x.dtype == bool:
                     return np.arange(max)[x]
                 else:
@@ -334,7 +342,7 @@ class larray(object):
                 return (np.arange(self._shape[0])[addr],)
             else:
                 raise NotImplementedError()
-        elif all(isinstance(x, collections.Sized) for x in addr):
+        elif all(isinstance(x, Sized) for x in addr):
             indices = [np.array(x) for x in addr]
             return indices
         else:
@@ -342,8 +350,8 @@ class larray(object):
             if len(indices) == 1:
                 return indices
             elif len(indices) == 2:
-                if isinstance(indices[0], collections.Sized):
-                    if isinstance(indices[1], collections.Sized):
+                if isinstance(indices[0], Sized):
+                    if isinstance(indices[1], Sized):
                         mesh_xy = np.meshgrid(*indices)
                         return (mesh_xy[0].T, mesh_xy[1].T)  # meshgrid works on (x,y), not (i,j)
                 return indices
@@ -393,7 +401,7 @@ class larray(object):
                 base_val = base_val[0]
             elif partial_shape and base_val.shape != partial_shape:
                 base_val = base_val.reshape(partial_shape)
-        elif isinstance(self.base_value, collections.Iterator):
+        elif isinstance(self.base_value, Iterator):
             raise NotImplementedError("coming soon...")
         else:
             raise ValueError("invalid base value for array (%s)" % self.base_value)
@@ -413,7 +421,7 @@ class larray(object):
             elif isinstance(x, slice):
                 lower = x.start or 0
                 upper = min(x.stop or size - 1, size - 1)  # slices are allowed to go past the bounds
-            elif isinstance(x, collections.Sized):
+            elif isinstance(x, Sized):
                 if is_boolean_array(x):
                     lower = 0
                     upper = x.size - 1
@@ -503,7 +511,7 @@ class larray(object):
                 x = np.where(x, x, np.nan)
             else:
                 x = self.base_value.toarray((sparse.csc_matrix))
-        elif isinstance(self.base_value, collections.Iterator):
+        elif isinstance(self.base_value, Iterator):
             x = np.fromiter(self.base_value, dtype=self.dtype or float, count=self.size)
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
