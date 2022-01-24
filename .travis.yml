@@ -19,8 +19,8 @@ matrix:
     - python: 3.9
       env: NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1"
 install:
-  - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION" coverage coveralls
+  - pip install "numpy==$NUMPY_VERSION" "scipy==$SCIPY_VERSION" coverage coveralls pytest pytest-cov
 script:
-  - nosetests --with-coverage --cover-package=lazyarray
+  - pytest --cov=lazyarray -v -x
 after_success:
   - coveralls
