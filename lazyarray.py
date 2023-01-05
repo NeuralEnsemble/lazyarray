@@ -496,7 +496,10 @@ class larray(object):
         elif isinstance(self.base_value, (int, np.integer, float, bool, np.bool_)):
             x = self.base_value * np.ones(self._shape, dtype=self.dtype)
         elif isinstance(self.base_value, np.ndarray):
-            x = self.base_value
+            if self.base_value.shape == (1,):
+                x = self.base_value[0]
+            else:
+                x = self.base_value
         elif callable(self.base_value):
             x = np.array(np.fromfunction(self.base_value, shape=self._shape, dtype=int), dtype=self.dtype)
         elif hasattr(self.base_value, "lazily_evaluate"):
