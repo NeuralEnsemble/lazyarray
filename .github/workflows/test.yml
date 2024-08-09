@@ -13,11 +13,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.6", "3.9", "3.10"]
+        python-version: ["3.7", "3.9", "3.10"]
         req-version: ["oldest", "middle", "newest"]
-        os: ["ubuntu-latest"]
+        os: ["ubuntu-22.04"]
         exclude:
-          - python-version: "3.6"
+          - python-version: "3.7"
             req-version: "newest"
           - python-version: "3.9"
             req-version: "oldest"
