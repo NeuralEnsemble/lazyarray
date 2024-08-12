@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Test on ${{ matrix.os }} with Python ${{ matrix.python-version }}
+    name: Test with Python ${{ matrix.python-version }} and ${{ matrix.req-version }} requirements on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -21,6 +21,8 @@ jobs:
             req-version: "newest"
           - python-version: "3.12"
             req-version: "oldest"
+          - python-version: "3.12"
+            req-version: "middle"
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
