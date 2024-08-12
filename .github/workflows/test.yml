@@ -19,6 +19,8 @@ jobs:
         exclude:
           - python-version: "3.8"
             req-version: "newest"
+          - python-version: "3.10"
+            req-version: "oldest"
           - python-version: "3.12"
             req-version: "oldest"
           - python-version: "3.12"
