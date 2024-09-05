@@ -1,0 +1,41 @@
+[project]
+name = "lazyarray"
+version = "0.6.0.dev"
+description = "A Python package that provides a lazily-evaluated numerical array class, larray, based on and compatible with NumPy arrays."
+readme = "README.rst"
+requires-python = ">=3.8"
+license = {text = "Modified BSD"}
+authors = [
+  {name = "Andrew P. Davison", email = "andrew.davison@cnrs.fr"}
+]
+maintainers = [
+  {name = "Andrew P. Davison", email = "andrew.davison@cnrs.fr"}
+]
+keywords = ["lazy evaluation, array"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering"
+]
+dependencies = [
+  "numpy>=1.20.3"
+]
+
+[project.optional-dependencies]
+sparse = ["scipy>=1.7.3"]
+dev = ["sphinx", "pytest", "pytest-cov", "flake8", "wheel"]
+
+[project.urls]
+homepage = "https://github.com/NeuralEnsemble/lazyarray/"
+documentation = "https://lazyarray.readthedocs.io/"
+repository = "https://github.com/NeuralEnsemble/lazyarray/"
+changelog = "https://github.com/NeuralEnsemble/lazyarray/blob/master/changelog.txt"
+download = "http://pypi.python.org/pypi/lazyarray"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
