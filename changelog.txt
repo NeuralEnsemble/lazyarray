@@ -128,6 +128,13 @@ Release 0.5.2
 * Add support for Python 3.10, remove testing for Python 3.4 and NumPy 1.12
 * Switch from nose to pytest for running tests
 
+Release 0.6.0
+=============
+
+* Switch from setup.py to pyproject.toml
+* Add testing for Python 3.11, 3.12, remove testing for 3.5-3.7.
+* Tested with NumPy 2.0, minimum NumPy version tested is now 1.20.
+* Switch to GitHub Actions for continuous integration testing.
 
 .. _`#3`: https://bitbucket.org/apdavison/lazyarray/issue/3/
 .. _`#4`: https://bitbucket.org/apdavison/lazyarray/issue/4/

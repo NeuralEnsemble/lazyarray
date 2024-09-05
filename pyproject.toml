@@ -1,6 +1,6 @@
 [project]
 name = "lazyarray"
-version = "0.6.0.dev"
+version = "0.6.0"
 description = "A Python package that provides a lazily-evaluated numerical array class, larray, based on and compatible with NumPy arrays."
 readme = "README.rst"
 requires-python = ">=3.8"
