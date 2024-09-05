@@ -1,7 +1,7 @@
 """
 Unit tests for ``larray``-compatible ufuncs
 
-Copyright Andrew P. Davison, 2012-2022
+Copyright Andrew P. Davison, 2012-2024
 """
 
 from lazyarray import larray, sqrt, cos, power, fmod

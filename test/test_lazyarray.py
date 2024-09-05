@@ -2,7 +2,7 @@
 """
 Unit tests for ``larray`` class
 
-Copyright Andrew P. Davison, Joël Chavas, Elodie Legouée (CNRS) and Ankur Sinha (UCL), 2012-2022
+Copyright Andrew P. Davison, Joël Chavas, Elodie Legouée (CNRS) and Ankur Sinha (UCL), 2012-2024
 """
 
 from lazyarray import larray, VectorizedIterable, sqrt, partial_shape
