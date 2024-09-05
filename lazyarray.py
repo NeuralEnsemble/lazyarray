@@ -154,7 +154,6 @@ def is_array_like(value):
     return True
 
 
-
 class larray(object):
     """
     Optimises storage of and operations on arrays in various ways:
@@ -169,7 +168,6 @@ class larray(object):
       - in parallelized code, different rows or columns may be evaluated
         on different nodes or in different threads.
     """
-
 
     def __init__(self, value, shape=None, dtype=None):
         """
@@ -202,7 +200,7 @@ class larray(object):
             elif not isinstance(value, np.ndarray):
                 value = np.array(value, dtype=dtype)
             elif dtype is not None:
-               assert np.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
+                assert np.can_cast(value.dtype, dtype, casting='safe')  # or could convert value to the provided dtype
             if shape and value.shape and value.shape != shape:
                 raise ValueError("Array has shape %s, value has shape %s" % (shape, value.shape))
             if value.shape:
@@ -244,8 +242,10 @@ class larray(object):
         else:
             try:
                 obj.base_value = deepcopy(self.base_value)
-            except TypeError:  # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
-                obj.base_value = self.base_value  # so here we create a reference rather than deepcopying - could cause problems
+            except TypeError:
+                # base_value cannot be copied, e.g. is a generator (but see generator_tools from PyPI)
+                # so here we create a reference rather than deepcopying - could cause problems
+                obj.base_value = self.base_value
         obj._shape = self._shape
         obj.dtype = self.dtype
         obj.operations = []
@@ -257,15 +257,13 @@ class larray(object):
         return obj
 
     def __repr__(self):
-        return "<larray: base_value=%r shape=%r dtype=%r, operations=%r>" % (self.base_value,
-                                                                             self.shape,
-                                                                             self.dtype,
-                                                                             self.operations)
+        return "<larray: base_value=%r shape=%r dtype=%r, operations=%r>" % (
+            self.base_value, self.shape, self.dtype, self.operations)
 
     def _set_shape(self, value):
         if (hasattr(self.base_value, "shape") and
                 self.base_value.shape and   # values of type np.float have an empty shape
-                    self.base_value.shape != value):
+                self.base_value.shape != value):
             raise ValueError("Lazy array has fixed shape %s, cannot be changed to %s" % (self.base_value.shape, value))
         self._shape = value
         for op in self.operations:
@@ -298,9 +296,11 @@ class larray(object):
     @property
     def is_homogeneous(self):
         """True if all the elements of the array are the same."""
-        hom_base = isinstance(self.base_value, (int, np.integer, float, bool)) \
-                   or type(self.base_value) == self.dtype \
-                   or (isinstance(self.dtype, type) and isinstance(self.base_value, self.dtype))
+        hom_base = (
+            isinstance(self.base_value, (int, np.integer, float, bool))
+            or type(self.base_value) == self.dtype
+            or (isinstance(self.dtype, type) and isinstance(self.base_value, self.dtype))
+        )
         hom_ops = all(obj.is_homogeneous for f, obj in self.operations if isinstance(obj, larray))
         return hom_base and hom_ops
 
@@ -326,9 +326,9 @@ class larray(object):
                 return x
             elif isinstance(x, slice):  # need to handle negative values in slice
                 return np.arange((x.start or 0),
-                                    (x.stop or max),
-                                    (x.step or 1),
-                                    dtype=int)
+                                 (x.stop or max),
+                                 (x.step or 1),
+                                 dtype=int)
             elif isinstance(x, Sized):
                 if hasattr(x, 'dtype') and x.dtype == bool:
                     return np.arange(max)[x]
@@ -509,7 +509,7 @@ class larray(object):
             if x.shape != self._shape:
                 x = x.reshape(self._shape)
         elif have_scipy and sparse.issparse(self.base_value):  # For sparse matrices
-            if empty_val!=0:
+            if empty_val != 0:
                 x = self.base_value.toarray((sparse.csc_matrix))
                 x = np.where(x, x, np.nan)
             else:
