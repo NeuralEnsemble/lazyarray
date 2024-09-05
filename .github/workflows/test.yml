@@ -35,27 +35,27 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r .github/workflows/requirements-${{ matrix.req-version }}.txt
-        pip install pytest pytest-cov
+        pip install pytest pytest-cov coveralls
         pip install .
     - name: Run tests
       run: |
         pytest --cov=lazyarray -v
-  #   - name: Upload coverage data
-  #     run: |
-  #       coveralls --service=github
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       COVERALLS_FLAG_NAME: ${{ matrix.test-name }}
-  #       COVERALLS_PARALLEL: true
-  # coveralls:
-  #   name: Indicate completion to coveralls.io
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   container: python:3-slim
-  #   steps:
-  #   - name: Finished
-  #     run: |
-  #       pip3 install --upgrade coveralls
-  #       coveralls --service=github --finish
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload coverage data
+      run: |
+        coveralls --service=github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_FLAG_NAME: ${{ matrix.test-name }}
+        COVERALLS_PARALLEL: true
+  coveralls:
+    name: Indicate completion to coveralls.io
+    needs: test
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --service=github --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
