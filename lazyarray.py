@@ -510,10 +510,10 @@ class larray(object):
                 x = x.reshape(self._shape)
         elif have_scipy and sparse.issparse(self.base_value):  # For sparse matrices
             if empty_val != 0:
-                x = self.base_value.toarray((sparse.csc_matrix))
+                x = self.base_value.toarray()
                 x = np.where(x, x, np.nan)
             else:
-                x = self.base_value.toarray((sparse.csc_matrix))
+                x = self.base_value.toarray()
         elif isinstance(self.base_value, Iterator):
             x = np.fromiter(self.base_value, dtype=self.dtype or float, count=self.size)
             if x.shape != self._shape:

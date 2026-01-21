@@ -121,8 +121,8 @@ def test_create_with_sparse_array():
     data_dia = np.array([[1, 2, 3, 4]]).repeat(3, axis=0) # For dia_matrix
     offsets_dia = np.array([0, -1, 2]) # For dia_matrix
     dia = larray(dia_matrix((data_dia, offsets_dia), shape=(4, 4))) # For dia_matrix
-    dok = larray(dok_matrix(((row, col)), shape=(3, 3))) # For dok_matrix
-    lil = larray(lil_matrix(data, shape=(3, 3))) # For lil_matrix
+    dok = larray(dok_matrix((np.vstack((row, col))), shape=(2, 6))) # For dok_matrix
+    lil = larray(lil_matrix(data, shape=(1, 6))) # For lil_matrix
     assert bsr.shape == (3, 3)
     assert coo.shape == (3, 3)
     assert csc.shape == (3, 3)
@@ -136,47 +136,63 @@ def test_create_with_sparse_array():
         assert_array_equal(coo.evaluate(), coo_matrix((data, (row, col))).toarray()) # For coo_matrix
         assert_array_equal(csc.evaluate(), csc_matrix((data, (row, col))).toarray()) # For csc_matrix
         assert_array_equal(csr.evaluate(), csr_matrix((data, (row, col))).toarray()) # For csr_matrix
-        assert_array_equal(dia.evaluate(), dia_matrix((data_dia, (row, col))).toarray()) # For dia_matrix
-        assert_array_equal(dok.evaluate(), dok_matrix((data, (row, col))).toarray()) # For dok_matrix
-        assert_array_equal(lil.evaluate(), lil_matrix((data, (row, col))).toarray()) # For lil_matrix
+        assert_array_equal(dia.evaluate(), dia_matrix((data_dia, offsets_dia), shape=(4, 4)).toarray()) # For dia_matrix
+        assert_array_equal(dok.evaluate(), dok_matrix((np.vstack((row, col))), shape=(2, 6)).toarray()) # For dok_matrix
+        assert_array_equal(lil.evaluate(), lil_matrix(data, shape=(1, 6)).toarray()) # For lil_matrix
+    test_evaluate_with_sparse_array()
 
     def test_multiple_operations_with_sparse_array():
         # For bsr_matrix
-        bsr0 = bsr /100.0
+        bsr0 = bsr / 100.0
         bsr1 = 0.2 + bsr0
         assert_array_almost_equal(bsr0.evaluate(), np.array([[0.01, 0., 0.04], [0., 0., 0.05], [0.02, 0.03, 0.06]]))
-        assert_array_almost_equal(bsr0.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
+        assert_array_almost_equal(bsr1.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
         # For coo_matrix
-        coo0 = coo /100.0
+        coo0 = coo / 100.0
         coo1 = 0.2 + coo0
         assert_array_almost_equal(coo0.evaluate(), np.array([[0.01, 0., 0.04], [0., 0., 0.05], [0.02, 0.03, 0.06]]))
-        assert_array_almost_equal(coo0.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
+        assert_array_almost_equal(coo1.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
         # For csc_matrix
-        csc0 = csc /100.0
+        csc0 = csc / 100.0
         csc1 = 0.2 + csc0
         assert_array_almost_equal(csc0.evaluate(), np.array([[0.01, 0., 0.04], [0., 0., 0.05], [0.02, 0.03, 0.06]]))
-        assert_array_almost_equal(csc0.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
+        assert_array_almost_equal(csc1.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
         # For csr_matrix
-        csr0 = csr /100.0
+        csr0 = csr / 100.0
         csr1 = 0.2 + csr0
         assert_array_almost_equal(csc0.evaluate(), np.array([[0.01, 0., 0.04], [0., 0., 0.05], [0.02, 0.03, 0.06]]))
-        assert_array_almost_equal(csc0.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
+        assert_array_almost_equal(csc1.evaluate(), np.array([[0.21, 0.2, 0.24], [0.2, 0.2, 0.25], [0.22, 0.23, 0.26]]))
         # For dia_matrix
-        dia0 = dia /100.0
+        dia0 = dia / 100.0
         dia1 = 0.2 + dia0
-        assert_array_almost_equal(dia0.evaluate(), np.array([[0.01, 0.02, 0.03, 0.04]]))
-        assert_array_almost_equal(dia1.evaluate(), np.array([[0.21, 0.22, 0.23, 0.24]]))
-         # For dok_matrix
-        dok0 = dok /100.0
+        assert_array_almost_equal(
+            dia0.evaluate(),
+            np.array([
+                [0.01, 0, 0.03, 0],
+                [0.01, 0.02, 0, 0.04],
+                [0, 0.02, 0.03, 0],
+                [0, 0, 0.03, 0.04]
+            ])
+        )
+        assert_array_almost_equal(
+            dia1.evaluate(),
+            np.array([
+                [0.21, 0.2, 0.23, 0.2],
+                [0.21, 0.22, 0.2, 0.24],
+                [0.2, 0.22, 0.23, 0.2],
+                [0.2, 0.2, 0.23, 0.24]
+            ])
+        )         # For dok_matrix
+        dok0 = dok / 100.0
         dok1 = 0.2 + dok0
         assert_array_almost_equal(dok0.evaluate(), np.array([[0., 0.02, 0.02, 0., 0.01, 0.02], [0., 0., 0.01, 0.02, 0.02, 0.02]]))
         assert_array_almost_equal(dok1.evaluate(), np.array([[0.2, 0.22, 0.22, 0.2, 0.21, 0.22], [0.2, 0.2, 0.21, 0.22, 0.22, 0.22]]))
          # For lil_matrix
-        lil0 = lil /100.0
+        lil0 = lil / 100.0
         lil1 = 0.2 + lil0
         assert_array_almost_equal(lil0.evaluate(), np.array([[0.01, 0.02, 0.03, 0.04, 0.05, 0.06]]))
         assert_array_almost_equal(lil1.evaluate(), np.array([[0.21, 0.22, 0.23, 0.24, 0.25, 0.26]]))
-
+    test_multiple_operations_with_sparse_array()
 
     def test_getitem_from_2D_sparse_array():
         pytest.raises(IndexError, bsr.__getitem__, (3, 0))
@@ -186,41 +202,7 @@ def test_create_with_sparse_array():
         pytest.raises(IndexError, dia.__getitem__, (3, 0))
         pytest.raises(IndexError, dok.__getitem__, (3, 0))
         pytest.raises(IndexError, lil.__getitem__, (3, 0))
-
-
-# def test_columnwise_iteration_with_flat_array():
-# m = larray(5, shape=(4,3)) # 4 rows, 3 columns
-#    cols = [col for col in m.by_column()]
-#    assert cols == [5, 5, 5]
-#
-# def test_columnwise_iteration_with_structured_array():
-#    input = np.arange(12).reshape((4,3))
-# m = larray(input, shape=(4,3)) # 4 rows, 3 columns
-#    cols = [col for col in m.by_column()]
-#    assert_array_equal(cols[0], input[:,0])
-#    assert_array_equal(cols[2], input[:,2])
-#
-# def test_columnwise_iteration_with_function():
-#    input = lambda i,j: 2*i + j
-#    m = larray(input, shape=(4,3))
-#    cols = [col for col in m.by_column()]
-#    assert_array_equal(cols[0], np.array([0, 2, 4, 6]))
-#    assert_array_equal(cols[1], np.array([1, 3, 5, 7]))
-#    assert_array_equal(cols[2], np.array([2, 4, 6, 8]))
-#
-# def test_columnwise_iteration_with_flat_array_and_mask():
-# m = larray(5, shape=(4,3)) # 4 rows, 3 columns
-#    mask = np.array([True, False, True])
-#    cols = [col for col in m.by_column(mask=mask)]
-#    assert cols == [5, 5]
-#
-# def test_columnwise_iteration_with_structured_array_and_mask():
-#    input = np.arange(12).reshape((4,3))
-# m = larray(input, shape=(4,3)) # 4 rows, 3 columns
-#    mask = np.array([False, True, True])
-#    cols = [col for col in m.by_column(mask=mask)]
-#    assert_array_equal(cols[0], input[:,1])
-#    assert_array_equal(cols[1], input[:,2])
+    # test_getitem_from_2D_sparse_array()
 
 
 def test_size_related_properties():
