@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 127
+# W503/W504 are mutually contradictory line-break-around-operator rules;
+# we leave both at their defaults (W503 ignored, W504 active) to match
+# typical Python practice.
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .pytest_cache,
+    lazyarray.egg-info,

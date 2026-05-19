@@ -19,14 +19,7 @@ try:
 except ImportError:
     have_scipy = False
 
-try:
-    from collections.abc import Sized
-    from collections.abc import Mapping
-    from collections.abc import Iterator
-except ImportError:
-    from collections import Sized
-    from collections import Mapping
-    from collections import Iterator
+from collections.abc import Sized, Mapping, Iterator
 
 
 __version__ = "0.7.0"
@@ -298,7 +291,7 @@ class larray(object):
         """True if all the elements of the array are the same."""
         hom_base = (
             isinstance(self.base_value, (int, np.integer, float, bool))
-            or type(self.base_value) == self.dtype
+            or type(self.base_value) == self.dtype  # noqa: E721 - intentional exact-type match against a dtype object
             or (isinstance(self.dtype, type) and isinstance(self.base_value, self.dtype))
         )
         hom_ops = all(obj.is_homogeneous for f, obj in self.operations if isinstance(obj, larray))

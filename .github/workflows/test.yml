@@ -41,8 +41,10 @@ jobs:
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 lazyarray.py --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 lazyarray.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        # full style check, using the rules declared in .flake8
+        flake8 lazyarray.py --count --statistics
+        # complexity is informational only — do not fail the build on C901
+        flake8 lazyarray.py --count --exit-zero --max-complexity=10 --select=C --statistics
     - name: Run tests
       run: |
         pytest --cov=lazyarray -v
