@@ -1,0 +1,22 @@
+================================
+Bug reports and feature requests
+================================
+
+If you find a bug or would like to suggest a new feature for lazyarray,
+please go to https://github.com/NeuralEnsemble/lazyarray/issues. First
+check that there is not already an existing ticket for your bug or request,
+then click on "New issue" to create a new one (you will need a GitHub
+account, but creating one is simple and free).
+
+When reporting a bug, please include:
+
+* the version of lazyarray, NumPy (and SciPy, if applicable), and Python
+  you are using;
+* the operating system;
+* a minimal reproducer — the shortest possible code snippet that exhibits
+  the problem;
+* the full traceback or unexpected output.
+
+For general questions about how to use lazyarray, the
+`NeuralEnsemble Google Group <http://groups.google.com/group/neuralensemble>`_
+is a better venue than the issue tracker.

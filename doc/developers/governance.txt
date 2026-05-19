@@ -1,0 +1,52 @@
+==========
+Governance
+==========
+
+lazyarray is a small, community-developed Python library hosted under the
+`NeuralEnsemble organisation <https://github.com/NeuralEnsemble>`_ on
+GitHub. It welcomes contributions from anyone who is interested in the
+project. All contributors agree to abide by the
+`Code of Conduct <https://github.com/NeuralEnsemble/lazyarray/blob/master/CODE_OF_CONDUCT.md>`_.
+
+Maintainers
+===========
+
+The current active maintainer is:
+
+* Andrew P. Davison (CNRS / NeuroPSI)
+
+Past authors and contributors are listed in the ``AUTHORS`` file at the
+root of the repository.
+
+Any contributor who has had at least three pull requests accepted may be
+nominated as a maintainer. Nominations must be approved by a majority of the
+existing maintainer(s), with no dissenting maintainer.
+
+Contributions
+=============
+
+All non-trivial contributions are made by pull request against the
+``master`` branch, with the exception of quick bug fixes affecting fewer
+than ten lines of code, which a maintainer may push directly.
+
+Pull requests may be approved by any maintainer; anyone is welcome to
+join the discussion. In case of disagreement, the maintainers will try to
+reach consensus, taking account of any input from the wider community.
+If consensus cannot be reached, decisions will be made by majority vote
+of the maintainers.
+
+Code review checks for:
+
+* tests covering new or changed behaviour;
+* a corresponding changelog entry;
+* no regressions in the CI matrix;
+* adherence to the :doc:`coding style <contributing>`.
+
+Decision-making
+===============
+
+Day-to-day decisions are made by the maintainers. Larger questions, such as
+breaking API changes, are discussed publicly on the
+`NeuralEnsemble Google Group <http://groups.google.com/group/neuralensemble>`_
+or in a GitHub issue, with a reasonable opportunity for community input
+before a decision is taken.

@@ -46,6 +46,10 @@ jobs:
     - name: Run tests
       run: |
         pytest --cov=lazyarray -v
+    - name: Build documentation
+      run: |
+        pip install sphinx
+        cd doc && make html SPHINXOPTS="-W --keep-going"
     - name: Upload coverage data
       run: |
         coveralls --service=github

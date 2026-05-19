@@ -2,27 +2,35 @@
 Developers' guide
 =================
 
-TO BE COMPLETED
+This guide contains information about contributing to lazyarray development,
+about the internal architecture of the package, and about the maintenance and
+release workflow.
 
-Testing
-=======
+lazyarray is open-source software (BSD-3-Clause) with a community-based
+development model: contributions are welcomed, and the direction of the
+project is determined by the needs of its users — most prominently
+`PyNN <http://neuralensemble.org/PyNN/>`_, but also any other downstream
+project that needs lazily-evaluated NumPy-compatible arrays.
 
-In the `test` sub-directory, run::
+There are several ways to contribute:
 
-    $ pytest
+ * reporting bugs, errors and other mistakes in the code or documentation;
+ * making suggestions for improvements;
+ * fixing bugs;
+ * extending the supported set of NumPy operations;
+ * helping to maintain the package across new versions of Python, NumPy and
+   SciPy.
 
-To see how well the tests cover the code base, run::
+The following sections contain guidelines for each of these.
 
-    $ pytest --cov=lazyarray --cov-report html --cov-report term-missing
+.. toctree::
+   :maxdepth: 2
+
+   developers/bug_reports
+   developers/contributing
+   developers/architecture
+   developers/governance
+   developers/roadmap
 
 
-Making a release
-================
-
-* Update the version numbers in pyproject.toml, lazyarray.py, doc/conf.py and doc/installation.txt
-* Update changelog.txt
-* Run all the tests with Python 3
-* python -m build
-* twine upload dist/lazyarray-<version>*
-* Commit the changes, tag with release number, push to Github
-* Rebuild the documentation at http://lazyarray.readthedocs.org/
+.. _`NeuralEnsemble Google Group`: http://groups.google.com/group/neuralensemble

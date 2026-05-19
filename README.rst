@@ -28,3 +28,32 @@ and memory in cases where:
 
 .. image:: https://coveralls.io/repos/github/NeuralEnsemble/lazyarray/badge.svg?branch=master
    :target: https://coveralls.io/github/NeuralEnsemble/lazyarray?branch=master
+
+
+Documentation
+=============
+
+Full documentation is available at https://lazyarray.readthedocs.io,
+including a tutorial, API reference, and a developers' guide.
+
+
+Communication
+=============
+
+* General questions and discussion: the
+  `NeuralEnsemble Google Group <http://groups.google.com/group/neuralensemble>`_.
+* Bug reports and feature requests: the
+  `GitHub issue tracker <https://github.com/NeuralEnsemble/lazyarray/issues>`_.
+
+Contributions are welcome — see the ``CONTRIBUTING.md`` file at the root
+of the repository and the
+`developers' guide <https://lazyarray.readthedocs.io/en/latest/developers.html>`_
+for details. All contributors are expected to follow the
+`Code of Conduct <https://github.com/NeuralEnsemble/lazyarray/blob/master/CODE_OF_CONDUCT.md>`_.
+
+
+License
+=======
+
+lazyarray is released under the BSD-3-Clause license; see the ``LICENSE``
+file for the full text.

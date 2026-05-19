@@ -1,0 +1,76 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "name": "lazyarray",
+  "description": "lazyarray is a Python package that provides a lazily-evaluated numerical array class, ``larray``, based on and compatible with NumPy arrays.\n\nLazy evaluation means that any operations on the array (potentially including array construction) are not performed immediately, but are delayed until evaluation is specifically requested. Evaluation of only parts of the array is also possible.\n\nUse of an ``larray`` can potentially save considerable computation time and memory in cases where:\n\n* arrays are used conditionally (i.e. there are cases in which the array is   never used)\n* only parts of an array are used (for example in distributed computation, in which each MPI node operates on a subset of the elements of the array)",
+  "author": [
+    {
+      "givenName": "Andrew P.",
+      "familyName": "Davison",
+      "type": "Person",
+      "id": "http://orcid.org/0000-0002-4793-7541"
+    },
+    {
+      "givenName": "Joël",
+      "familyName": "Chavas",
+      "type": "Person"
+    },
+    {
+      "givenName": "Elodie",
+      "familyName": "Legouée",
+      "type": "Person"
+    },
+    {
+      "givenName": "Ankur",
+      "familyName": "Sinha",
+      "type": "Person"
+    }
+  ],
+  "license": [
+    "https://spdx.org/licenses/BSD-3-Clause"
+  ],
+  "version": "0.7.0",
+  "dateModified": "2026-01-21",
+  "codeRepository": "https://github.com/NeuralEnsemble/lazyarray/",
+  "downloadUrl": "https://files.pythonhosted.org/packages/30/2c/fe1319b150a6800d9c1336d633590bf170573795fc7ecf3cb39f7707e62d/lazyarray-0.7.0.tar.gz",
+  "relatedLink": [
+    "https://lazyarray.readthedocs.io/"
+  ],
+  "softwareHelp": [
+    "https://github.com/NeuralEnsemble/lazyarray/issues"
+  ],
+  "releaseNotes": "* Minor updates to work with recent versions of NumPy and SciPy\n* Add support for Python 3.13, 3.14; remove testing for Python 3.9 and below, and for NumPy 1.22 and below.",
+  "programmingLanguage": [
+    "Python"
+  ],
+  "operatingSystem": [
+    "Windows",
+    "Linux",
+    "macOS"
+  ],
+  "availableOnDevice": [
+    "high-performance computer",
+    "desktop"
+  ],
+  "softwareRequirements": [
+    "NumPy>=1.23.5"
+  ],
+  "softwareSuggestions": [
+    "SciPy>=1.9.3"
+  ],
+  "developmentStatus": "active",
+  "continuousIntegration": "https://github.com/NeuralEnsemble/lazyarray/actions",
+  "issueTracker": "https://github.com/NeuralEnsemble/lazyarray/issues",
+  "keywords": [
+    "lazy evaluation",
+    "array"
+  ],
+  "maintainer": [
+    {
+      "givenName": "Andrew P.",
+      "familyName": "Davison",
+      "type": "Person",
+      "id": "http://orcid.org/0000-0002-4793-7541"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+==========================
+Contributing to lazyarray
+==========================
+
+Communication
+=============
+
+Discussions about lazyarray take place in the `NeuralEnsemble Google
+Group <http://groups.google.com/group/neuralensemble>`_, and bug reports
+and feature requests are tracked in the
+`GitHub issue tracker <https://github.com/NeuralEnsemble/lazyarray/issues>`_.
+
+
+Setting up a development environment
+====================================
+
+We strongly suggest you work in a virtual environment, e.g. using
+``venv`` or Anaconda.
+
+Requirements
+------------
+
+In addition to the runtime dependencies listed in :doc:`../installation`,
+you will need:
+
+* `pytest <https://docs.pytest.org>`_ and ``pytest-cov`` to run the test suite;
+* `flake8 <https://flake8.pycqa.org>`_ to check coding style;
+* `Sphinx <https://www.sphinx-doc.org>`_ to build the documentation.
+
+All of these are listed under the ``dev`` extra in ``pyproject.toml`` and can
+be installed with::
+
+    $ pip install -e ".[dev]"
+
+
+Code checkout
+-------------
+
+lazyarray development is based around GitHub. Once you have a GitHub
+account, fork the
+`lazyarray repository <https://github.com/NeuralEnsemble/lazyarray>`_ and
+clone your fork to your local machine::
+
+    $ git clone https://github.com/<username>/lazyarray.git
+    $ cd lazyarray
+
+Add the upstream repository as a remote so that you can keep your fork
+up-to-date::
+
+    $ git remote add upstream https://github.com/NeuralEnsemble/lazyarray.git
+    $ git pull upstream master
+
+Install lazyarray in editable mode::
+
+    $ pip install -e ".[dev]"
+
+
+Coding style
+============
+
+We follow `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_, with the
+following clarifications:
+
+* indentation of four spaces, no tabs;
+* maximum line length of 127 characters (matching the ``flake8``
+  configuration in CI);
+* single space around most operators, but no space around ``=`` when used
+  for keyword arguments or default values;
+* ``lower_case_with_underscores`` for function, method and variable names;
+* ``CapWords`` for class names.
+
+Docstrings follow reStructuredText / Sphinx conventions so that they can
+be rendered into the API reference.
+
+flake8 is run automatically in CI; you can run it locally with::
+
+    $ flake8 lazyarray.py
+
+
+Versioning and deprecations
+===========================
+
+lazyarray uses `semantic versioning <https://semver.org>`_
+(``MAJOR.MINOR.PATCH``).
+
+When making changes to the public API:
+
+* prefer additive changes that do not break existing callers;
+* when removal is necessary, emit a ``DeprecationWarning`` for at least
+  one minor release before removing the affected behaviour;
+* document the change in ``changelog.txt``.
+
+
+Testing
+=======
+
+To run the entire test suite::
+
+    $ pytest
+
+To see how well the codebase is covered by tests::
+
+    $ pytest --cov=lazyarray --cov-report term --cov-report html
+
+If you add a new feature or fix a bug, please add at least one
+corresponding test. The test suite is run automatically by GitHub Actions
+on every push and pull request, against three Python versions and three
+sets of dependency pinnings (oldest / middle / newest); please make sure
+your changes do not break any of these combinations.
+
+
+Submitting code
+===============
+
+The recommended workflow is:
+
+1. Create a topic branch from ``master`` in your fork.
+2. Make your changes, with tests and a changelog entry.
+3. Run ``flake8 lazyarray.py`` and ``pytest`` locally.
+4. Push the branch to your fork and open a pull request against
+   ``NeuralEnsemble/lazyarray:master``.
+
+All non-trivial changes are made by pull request and require approval by
+a maintainer; quick bug fixes affecting only a few lines may be merged
+directly by a maintainer.
+
+If this is your first contribution, please add your name to the
+``AUTHORS`` file.
+
+By submitting a pull request, you agree that your contribution is
+licensed under the same `BSD-3-Clause licence <https://spdx.org/licenses/BSD-3-Clause>`_
+as the rest of the project.
+
+
+Documentation
+=============
+
+The documentation is built with Sphinx and hosted at
+`lazyarray.readthedocs.io <https://lazyarray.readthedocs.io>`_.
+
+To build it locally::
+
+    $ cd doc
+    $ make html
+
+The resulting HTML is in ``doc/_build/html``.
+
+
+Verifying an install
+====================
+
+After installing from PyPI, Spack, or source, a one-line check::
+
+    $ python -c "import lazyarray; print(lazyarray.__version__)"
+
+should print the installed version. A more thorough check is to run the
+test suite against the installed package.
+
+
+Making a release
+================
+
+When you think a release is ready, run through the following checklist:
+
+* are all the CI builds passing?
+* have you updated the version numbers in ``pyproject.toml``,
+  ``lazyarray.py``, ``doc/conf.py`` and ``doc/installation.txt``?
+* have you updated ``changelog.txt`` with a new section for this release?
+* have you updated ``codemeta.json`` (``version``, ``dateModified``,
+  ``releaseNotes``, ``downloadUrl``)?
+
+Once you are happy, build source and wheel packages::
+
+    $ python -m build
+
+and check that the result installs correctly. Then::
+
+    $ git tag x.y.z
+    $ git push origin x.y.z
+    $ twine upload dist/lazyarray-x.y.z*
+
+Finally, create a corresponding release on GitHub and verify that
+ReadTheDocs has rebuilt the documentation for the new tag.

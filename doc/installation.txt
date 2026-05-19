@@ -27,5 +27,30 @@ To install the latest version of lazyarray from the Git repository::
     $ pip install .
 
 
+Verifying the install
+=====================
+
+After installing, a quick check that the package is importable and
+reports the expected version::
+
+    $ python -c "import lazyarray; print(lazyarray.__version__)"
+
+
+Maintenance and operations
+==========================
+
+lazyarray is a Python library distributed through standard packaging
+channels:
+
+* `PyPI <https://pypi.org/project/lazyarray/>`_ — installed via ``pip``;
+* `Spack <https://packages.spack.io/package.html?name=py-lazyarray>`_ —
+  installed as ``py-lazyarray`` for HPC environments.
+
+It has no runtime services, no persistent state, and no infrastructure
+to operate. Upgrading is done by reinstalling from the same channel.
+Releases follow `semantic versioning <https://semver.org>`_; see the
+:doc:`developers' guide <developers>` for the release procedure.
+
+
 .. _`numpy`: http://numpy.scipy.org/
 .. _`scipy`: http://scipy.org/

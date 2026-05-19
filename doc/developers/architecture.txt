@@ -1,0 +1,71 @@
+============
+Architecture
+============
+
+lazyarray is a single-module package: all the code lives in
+``lazyarray.py`` (around 600 lines), and the test suite lives in the
+``test/`` directory. The Sphinx documentation source is in ``doc/``.
+
+The public surface is the :class:`larray` class together with the
+``partial_shape`` helper. Everything else in ``lazyarray.py`` is internal.
+
+The core data structure
+=======================
+
+An :class:`larray` instance stores three pieces of state:
+
+* ``base_value`` — the underlying source of element values. This may be a
+  number, a NumPy array, a SciPy sparse matrix, a sequence, an iterator,
+  a generator, or a callable of the form ``f(i)`` or ``f(i, j)``.
+* ``operations`` — an ordered list of ``(callable, operand)`` pairs that
+  describes the queue of arithmetic operations to apply to the base value.
+* ``_shape`` and ``_dtype`` — metadata used to validate broadcasting and
+  to short-circuit element-wise evaluation.
+
+Arithmetic on an :class:`larray` does not change the base value. Instead,
+each operator (``__add__``, ``__mul__``, etc.) is built by the
+``lazy_operation`` factory and appends an entry to ``operations`` on a
+deep-copy of the array. The actual computation is deferred.
+
+Evaluation
+==========
+
+Element values are computed only when the array is indexed or its
+``evaluate()`` method is called. The flow is:
+
+1. The address (a slice, integer, tuple, or boolean mask) is normalised
+   via ``full_address`` and the resulting sub-array shape is derived
+   via ``partial_shape``.
+2. The relevant subset of the base value is materialised — by calling
+   the function on the requested indices, advancing the iterator,
+   slicing the array, or returning the scalar.
+3. The queued operations are applied in order to that subset.
+
+This means that, even for very large logical arrays, only the elements
+that are actually requested are ever computed. This is the property that
+makes lazyarray useful in MPI-parallel simulations, where each process
+typically needs only a slice of a large parameter array.
+
+Decorators
+==========
+
+A handful of small decorators capture cross-cutting concerns:
+
+* ``check_shape`` ensures that an operand has a shape compatible with
+  the array;
+* ``requires_shape`` raises if the array's shape is not yet defined;
+* ``lazy_operation`` / ``lazy_inplace_operation`` / ``lazy_unary_operation``
+  generate the magic methods used for arithmetic.
+
+Extension points
+================
+
+Two extension points are provided for users who need to plug in their own
+value types:
+
+* a base value object that implements a method ``lazily_evaluate`` will
+  have that method called during evaluation (used, for example, to
+  integrate Brian quantities);
+* an object that is ``Sized`` but should nonetheless be treated as a
+  single element can declare this by setting an attribute
+  ``is_lazyarray_scalar = True``.

@@ -1,0 +1,34 @@
+=======
+Roadmap
+=======
+
+lazyarray is a small, stable library that has been in production use as a
+component of `PyNN <http://neuralensemble.org/PyNN/>`_ for over a decade.
+It is essentially in maintenance mode: the public API is unlikely to
+change substantially, and most development effort is spent keeping the
+package compatible with new releases of its dependencies.
+
+The current priorities are:
+
+* **Track new versions of Python, NumPy and SciPy.** Each release adds
+  testing for the latest stable Python, and drops Python versions that
+  have reached end-of-life. The CI matrix exercises three pinned
+  NumPy/SciPy sets (oldest supported, middle, newest).
+
+* **Improve interoperability with NumPy.** A longer-term goal is to
+  integrate more cleanly with the modern NumPy dispatch protocols
+  (``__array_function__`` and ``__array_ufunc__``) so that more
+  third-party functions accept :class:`larray` instances transparently.
+  Currently, only a subset of NumPy ufuncs is supported.
+
+* **Add type hints.** The public API is small enough that fully
+  annotating it is feasible. Running ``mypy`` in CI would catch
+  regressions in signatures and make integration with downstream
+  type-checked code easier.
+
+* **Maintenance-only stance for the public API.** New features will be
+  considered when they are well-motivated by a downstream user (most
+  often PyNN), but the project is not actively seeking feature growth.
+
+Suggestions and pull requests in any of these areas are welcome — see
+:doc:`contributing`.
